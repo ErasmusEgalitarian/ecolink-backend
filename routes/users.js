@@ -7,8 +7,8 @@ router.get('/me', verifyToken, async (req, res) => {
     try {
         const user = {
             id: req.user.id,
-            username: 'testuser',
-            email: 'test@example.com',
+            username: req.user.username,
+            email: req.user.email,
         };
         res.status(200).json(user);
     } catch (err) {

@@ -35,6 +35,12 @@ const UserSchema = new mongoose.Schema({
             message: 'Invalid CPF format',
         },
     },
+    roleId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Role', 
+        required: true,
+        default: '683607d382cf7e288f7ca460' // viewer
+    },
 });
 
 module.exports = mongoose.model('User', UserSchema, 'users');
