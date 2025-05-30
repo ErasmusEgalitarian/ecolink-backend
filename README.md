@@ -105,6 +105,8 @@ Editor id: 6836082d82cf7e288f7ca46d
 
 Viewer id (default): 683607d382cf7e288f7ca460
 
+### Endpoints:
+
 - GET `/api/roles`: Get all the roles informations.
   Payload: none
 
@@ -121,9 +123,39 @@ Viewer id (default): 683607d382cf7e288f7ca460
   }
   ```
 
-### Endpoints:
+## 3. Users
 
-## 3. Protected Routes
+- GET `/api/users/me`: Get logged in user.
+  Payload: none
+
+  Expected Response:
+  ```json
+  {
+    {
+      "id": "",
+      "username": "",
+      "email": "",
+    }
+  }
+  ```
+
+- GET `/api/users`: Get all the users (only for admin).
+  Payload: none
+
+  Expected Response: Array with all the users
+  ```json
+  {
+    {
+      "_id": "",
+      "username": "",
+      "email": "",
+      "roleId": {}
+    }
+  }
+  ```
+
+
+## 4. Protected Routes
 We implemented middleware to secure protected routes using JWT authentication.
 
 - Middleware: `authMiddleware.js` verifies tokens from the Authorization header.
