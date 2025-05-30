@@ -16,17 +16,17 @@ const createInitialRoles = async () => {
         { 
           _id: ROLE_IDS.ADMIN, 
           name: 'Admin', 
-          description: 'Administrador geral, tem todas as permissões.' 
+          description: 'General administrator, has all permissions.' 
         },
         { 
           _id: ROLE_IDS.EDITOR, 
           name: 'Editor', 
-          description: 'Catador, pode fazer postagens.' 
+          description: 'Collector, you can make posts.' 
         },
         { 
           _id: ROLE_IDS.VIEWER, 
           name: 'Viewer', 
-          description: 'Estudante, pode registrar doação e ver postagens.' 
+          description: 'Student, can register donation and view posts.' 
         },
       ]);
       console.log('Roles collection created with initial data!');

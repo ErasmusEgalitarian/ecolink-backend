@@ -28,9 +28,8 @@ router.put('/edit/:userId', verifyToken, async (req, res) => {
     try {
         
         const adminUser = await User.findById(req.user.id).populate('roleId');
-        console.log(adminUser);
         if (!adminUser || adminUser.roleId.name !== 'Admin') {
-        return res.status(403).json({ error: 'Access denied. Only administrators can perform this action.' });
+            return res.status(403).json({ error: 'Access denied. Only administrators can perform this action.' });
         }
 
         const { userId } = req.params;
