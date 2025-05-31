@@ -8,12 +8,12 @@ const authMiddleware = require('../middlewares/authMiddleware');
 
 const uploadDir = path.join(__dirname, '..', 'uploads');
 
-// TODO: lidar com diferentes tipos de arquivos
+// TODO: handle different types of files
 
 router.post('/upload', authMiddleware, upload.single('file'), async (req, res) => {
   const { category } = req.body;
 
-  if (!req.file) return res.status(400).send('Arquivo não enviado');
+  if (!req.file) return res.status(400).send('File not sent');
 
   const media = new Media({
     filename: req.file.filename,
@@ -50,12 +50,12 @@ router.get('/', authMiddleware, async (req, res) => {
     res.json(filteredMedias);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Erro ao buscar mídias' });
+    res.status(500).json({ message: 'Error fetching files' });
   }
 });
 
 
-const categories = ['Coleta', 'Armazenamento', 'Visita']; 
+const categories = ['Collect', 'Storage', 'Visit']; 
 
 router.get('/categories', (req, res) => {
   res.json(categories);
