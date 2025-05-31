@@ -7,7 +7,7 @@ const path = require('path');
 
 const cors = require('cors');
 
-const uploadDir = path.join(__dirname, 'uploads'); // -> criar pasta de uploads localmente
+const uploadDir = path.join(__dirname, 'uploads'); // -> create upload folder locally
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
