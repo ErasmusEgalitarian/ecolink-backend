@@ -106,6 +106,81 @@ We implemented middleware to secure protected routes using JWT authentication.
   }
   ```
 
+## 3. Media Upload and Feed
+
+### **GET** `/media`
+
+Returns all uploaded media.
+Optional query parameter `?category=example_category` can be used to filter by category.
+
+**Headers:**
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Expected Response (example):**
+
+```json
+[
+  {
+    "_id": "abc123",
+    "filename": "example.jpg",
+    "path": "uploads\\example.jpg",
+    "type": "image/jpg",
+    "category": "Visita",
+    "uploadedAt": "2025-05-30T14:12:00.000Z"
+  }
+]
+```
+
+---
+
+### **POST** `/media/upload`
+
+Uploads a new media file.
+
+**Headers:**
+
+```
+Authorization: Bearer <jwt_token>
+Content-Type: multipart/form-data
+```
+
+**Payload (FormData):**
+
+```
+file: <file>
+category: Education
+```
+
+**Expected Response:**
+
+```json
+{
+  "message": "File uploaded successfully"
+}
+```
+
+---
+
+### **GET** `/media/categories`
+
+Returns a list of unique categories from the media files.
+
+**Headers:**
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Expected Response:**
+
+```json
+["Visita", "Coleta", "Armazenamento"]
+```
+
+
 # Testing
 I tested the local endpoints with Postman:
 - Successfully registered and logged in a test user.
