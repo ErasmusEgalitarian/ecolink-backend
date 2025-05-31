@@ -128,7 +128,7 @@ Authorization: Bearer <jwt_token>
     "filename": "example.jpg",
     "path": "uploads\\example.jpg",
     "type": "image/jpg",
-    "category": "Visita",
+    "category": "Visit",
     "uploadedAt": "2025-05-30T14:12:00.000Z"
   }
 ]
@@ -177,7 +177,7 @@ Authorization: Bearer <jwt_token>
 **Expected Response:**
 
 ```json
-["Visita", "Coleta", "Armazenamento"]
+["Visit", "Collect", "Storage"]
 ```
 
 

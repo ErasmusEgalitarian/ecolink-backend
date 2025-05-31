@@ -8,7 +8,9 @@ const authMiddleware = require('../middlewares/authMiddleware');
 
 const uploadDir = path.join(__dirname, '..', 'uploads');
 
-// TODO: handle different types of files
+// TODO: handle additional file types (e.g., video, audio, PDFs) based on MIME
+// TODO: implement pagination with page & limit query params
+// TODO: allow dynamic update of media (e.g., edit category, delete, rename)
 
 router.post('/upload', authMiddleware, upload.single('file'), async (req, res) => {
   const { category } = req.body;
@@ -27,16 +29,14 @@ router.post('/upload', authMiddleware, upload.single('file'), async (req, res) =
 });
 
 router.get('/', authMiddleware, async (req, res) => {
-  const { category, date, page = 1, limit = 10 } = req.query;
+  const { category, date } = req.query;
 
   const filters = {};
   if (category) filters.category = category;
   if (date) filters.uploadedAt = { $gte: new Date(date) };
 
   try {
-    const mediasFromDB = await Media.find(filters)
-    .skip((page - 1) * limit)
-    .limit(Number(limit));
+    const mediasFromDB = await Media.find(filters).sort({ uploadedAt: -1 });
 
     const filesOnDisk = fs.readdirSync(uploadDir);
 
