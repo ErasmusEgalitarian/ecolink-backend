@@ -1,15 +1,13 @@
 const mongoose = require('mongoose');
 
-// Utility functions for validation
 const isValidCPF = (cpf) => {
-    // Basic validation: CPF must be 11 digits
     const regex = /^\d{11}$/;
     return regex.test(cpf);
 };
 
 const isValidPhone = (phone) => {
     if (!phone) return true;
-    const regex = /^\d{10}$|^\d{11}$/; // Only validate if a value is provided
+    const regex = /^\d{10}$|^\d{11}$/;
     return regex.test(phone);
 };
 
