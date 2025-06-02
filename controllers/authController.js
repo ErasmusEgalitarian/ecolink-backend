@@ -10,6 +10,11 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return res.status(400).json({ message: 'Username already exists' });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
@@ -25,8 +30,7 @@ exports.register = async (req, res) => {
 
     res.status(201).json({ message: 'User registered successfully' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
-    // ainda tratar os erros de validação de cada campo
+    res.status(400).json({error: "Invalid input or missing fields"});
   }
 };
 
