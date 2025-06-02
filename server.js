@@ -18,13 +18,26 @@ app.use('/api/users', userRoutes);
 const donationRoutes = require('./routes/donation');
 app.use('/api/donation', donationRoutes);
 
-
+const rolesRoutes = require('./routes/roles');
+app.use('/api/roles', rolesRoutes);
 
 // Connect to MongoDB
 connectDB();
 
-// Start the server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+if (process.env.NODE_ENV === 'development') {
+  require('./seeds/rolesSeeder');
+}
+
+module.exports = app;
+
+if (require.main === module) {
+  // Start the server
+  const PORT = process.env.PORT || 5000;
+  server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  
+  process.on('SIGTERM', () => server.close());
+  process.on('SIGINT', () => server.close());
+}
+
 
 

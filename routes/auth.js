@@ -6,7 +6,6 @@ const router = express.Router();
 
 // Register
 router.post('/register', async (req, res) => {
-    console.log('bateu')
     try {
         const { username, email, password, phoneNumber, address } = req.body;
 
