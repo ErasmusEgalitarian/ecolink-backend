@@ -1,22 +1,20 @@
 const mongoose = require('mongoose');
 
-// Utility functions for validation
 const isValidCPF = (cpf) => {
-    // Basic validation: CPF must be 11 digits
     const regex = /^\d{11}$/;
     return regex.test(cpf);
 };
 
 const isValidPhone = (phone) => {
     if (!phone) return true;
-    const regex = /^\d{10}$|^\d{11}$/; // Only validate if a value is provided
+    const regex = /^\d{10}$|^\d{11}$/;
     return regex.test(phone);
 };
 
 const UserSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    username: { type: String, required: [true, 'Username is required'], unique: true },
+    email: { type: String, required: [true, 'Email is required'], unique: true },
+    password: { type: String, required: [true, 'Password is required'] },
     phoneNumber: { type: String },
     address: { type: String },
     createdAt: { type: Date, default: Date.now },
@@ -34,6 +32,16 @@ const UserSchema = new mongoose.Schema({
             },
             message: 'Invalid CPF format',
         },
+    },
+    role: {
+        type: String,
+        enum: ['external', 'admin'],
+        default: 'external',
+    },
+    status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'active',
     },
 });
 
