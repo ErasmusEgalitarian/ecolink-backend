@@ -8,7 +8,7 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
     console.log('bateu')
     try {
-        const { username, email, password, phoneNumber, address } = req.body;
+        const { username, email, password, phoneNumber, address, roleId } = req.body;
 
         // Check if the user already exists
         const existingUser = await User.findOne({ email });
@@ -25,7 +25,8 @@ router.post('/register', async (req, res) => {
             email,
             password: hashedPassword,
             phoneNumber,
-            address
+            address,
+            roleId
         });
         await newUser.save();
 
@@ -54,15 +55,16 @@ router.post('/login', async (req, res) => {
 
         // Generate a JWT token
         const token = jwt.sign(
-            { id: user._id, username: user.username, email: user.email },
+            { id: user._id, username: user.username, email: user.email, role: user.roleId },
             process.env.JWT_SECRET,
             { expiresIn: '1d' }
         );
 
-        res.status(200).json({ token, user: { id: user._id, username: user.username, email: user.email, phone: user.phoneNumber, address: user.address } });
+        res.status(200).json({ token, user: { id: user._id, username: user.username, email: user.email, phone: user.phoneNumber, address: user.address, role: user.roleId } });
     } catch (err) {
         res.status(500).json({ message: 'Server error', error: err.message });
     }
 });
 
 module.exports = router;
+

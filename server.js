@@ -18,6 +18,8 @@ app.use('/api/users', userRoutes);
 const donationRoutes = require('./routes/donation');
 app.use('/api/donation', donationRoutes);
 
+const mediaRoutes    = require('./routes/media');
+app.use('/api/media',    mediaRoutes);
 
 
 // Connect to MongoDB
