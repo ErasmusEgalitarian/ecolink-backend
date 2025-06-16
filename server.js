@@ -28,6 +28,7 @@ app.use('/api/donation', donationRoutes);
 const mediaRoutes = require('./routes/media');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/media', mediaRoutes);
+
 const rolesRoutes = require('./routes/roles');
 app.use('/api/roles', rolesRoutes);
 
@@ -39,6 +40,21 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 module.exports = app;
+if (process.env.NODE_ENV === 'development') {
+  require('./seeds/rolesSeeder');
+}
+
+module.exports = app;
+
+if (require.main === module) {
+  // Start the server
+  const PORT = process.env.PORT || 5000;
+  server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  
+  process.on('SIGTERM', () => server.close());
+  process.on('SIGINT', () => server.close());
+}
+
 
 if (require.main === module) {
   // Start the server
