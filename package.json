@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "npx jest",
+    "test:watch": "npx jest --watch",
+    "test:coverage": "npx jest --coverage"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +19,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.12.0",
     "mongoose": "^8.9.1",
-    "multer": "^2.0.0"
+    "multer": "^2.0.0",
+    "nodemailer": "^7.0.4"
   },
   "devDependencies": {
     "jest": "^29.7.0",
