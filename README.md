@@ -58,15 +58,16 @@ The backend will run on `http://192.168.0.168:5000`.
 We implemented user registration and login functionality with JWT authentication.
 
 ### Endpoints:
-- POST `/api/auth/register`: Register a new user.
+- POST `/api/auth/register`: Register a new user (admin role).
   Payload:
   ```json
   {
-      "username": "testuser",
-      "email": "test@example.com",
+      "username": "Admin",
+      "email": "admin@example.com",
       "password": "password123",
       "phone": "9283372629",
-      "cpf": "12466748982"
+      "cpf": "12466748982",
+      "roleId": "6835fe9db57507b46d1e7369"
   }
   ```
   Expected Response:
@@ -80,18 +81,81 @@ We implemented user registration and login functionality with JWT authentication
   Payload:
   ```json
   {
-      "email": "test@example.com",
+      "email": "admin@example.com",
       "password": "password123"
   }
   ```
   Expected Response:
   ```json
   {
-      "token": "<jwt_token>"
+      "token": "<jwt_token>",
+      "user": {}
   }
   ```
 
-## 2. Protected Routes
+## 2. Roles administration
+
+Administrator(Admin) can change the role of other users.
+
+If you want to create a Admin or Editor user you need define the role id, if not the user will be viewer by default.
+
+Admin id: 6835fe9db57507b46d1e7369
+
+Editor id: 6836082d82cf7e288f7ca46d
+
+Viewer id (default): 683607d382cf7e288f7ca460
+
+### Endpoints:
+
+- GET `/api/roles`: Get all the roles informations.
+  Payload: none
+
+  Expected Response:
+  ```json
+  {
+    {
+      "_id": "",
+      "name": "",
+      "description": "",
+      "createdAt": "",
+      "__v": 0
+    }
+  }
+  ```
+
+## 3. Users
+
+- GET `/api/users/me`: Get logged in user.
+  Payload: none
+
+  Expected Response:
+  ```json
+  {
+    {
+      "id": "",
+      "username": "",
+      "email": "",
+    }
+  }
+  ```
+
+- GET `/api/users`: Get all the users (only for admin).
+  Payload: none
+
+  Expected Response: Array with all the users
+  ```json
+  {
+    {
+      "_id": "",
+      "username": "",
+      "email": "",
+      "roleId": {}
+    }
+  }
+  ```
+
+
+## 4. Protected Routes
 We implemented middleware to secure protected routes using JWT authentication.
 
 - Middleware: `authMiddleware.js` verifies tokens from the Authorization header.
@@ -182,10 +246,22 @@ Authorization: Bearer <jwt_token>
 
 
 # Testing
+
 I tested the local endpoints with Postman:
 - Successfully registered and logged in a test user.
 - Verified the JWT token-based authentication for protected routes.
 - Confirmed MongoDB Atlas stores the test user in the `users` collection.
+
+To run tests: 
+
+```
+npx jest
+```
+
+There are two tests for "roles", both test if the roles exists and if they are correct. 
+
+1. must return all predefined roles
+2. must return exactly 3 roles
 
 # Next Steps
 Continue developing the backend, including additional routes like waste pickup APIs.
