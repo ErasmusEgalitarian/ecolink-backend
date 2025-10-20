@@ -1,5 +1,5 @@
-
 # Overview
+
 This backend is part of the trash pickup system for Brasília. It uses:
 
 - Node.js and Express.js for the backend server.
@@ -7,7 +7,9 @@ This backend is part of the trash pickup system for Brasília. It uses:
 - JWT-based authentication for secure user access.
 
 # MongoDB Setup
+
 I have set up the MongoDB Atlas database for the project. The details are:
+
 - Login Email: egalitarianbrasil@proton.me
 - username: egalitarianbrasil
 - The Free instance is hosted on GCP in Sao Paulo, Brasil.
@@ -18,62 +20,79 @@ You can view the database cluster and data at MongoDB Atlas.
 The database name is: egalitarian_db.
 
 # Setting Up the Project Locally
+
 Follow these steps to set up the backend on your local machine:
 
 ## Step 1: Clone the Repository
+
 ```bash
 git clone <repository_url>
 cd <project_folder>
 ```
 
 ## Step 2: Install Dependencies
+
 Run the following command to install required Node.js packages:
+
 ```bash
 npm install
 ```
 
 ## Step 3: Set Up Environment Variables
+
 Create a `.env` file in the root of the project. Use the `.env.example` as a template:
+
 ```bash
 cp .env.example .env
 ```
+
 Edit the `.env` file with your credentials:
+
 ```
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/egalitarian_db?retryWrites=true&w=majority
-JWT_SECRET=<your_random_secure_jwt_secret>
+MONGO_URI=mongodb+srv://ecolink-devs:QgwYjRVfy11LXX5q@brasil.sk6i5.mongodb.net/?retryWrites=true&w=majority&appName=brasil
+JWT_SECRET=<your random secret jwt>
 PORT=5000
 ```
+
 To get the correct connection string contact backend developers (Not shared publicly in repository).
 
 ## Step 4: Start the Development Server
+
 Start the server locally:
+
 ```bash
 npx nodemon server.js
 ```
+
 The backend will run on `http://192.168.0.168:5000`.
 
 # Functionalities Implemented
 
 ## 1. Authentication System
+
 We implemented user registration and login functionality with JWT authentication.
 
 ### Endpoints:
+
 - POST `/api/auth/register`: Register a new user (admin role).
   Payload:
+
   ```json
   {
-      "username": "Admin",
-      "email": "admin@example.com",
-      "password": "password123",
-      "phone": "9283372629",
-      "cpf": "12466748982",
-      "roleId": "6835fe9db57507b46d1e7369"
+    "username": "Admin",
+    "email": "admin@example.com",
+    "password": "password123",
+    "phone": "9283372629",
+    "cpf": "12466748982",
+    "roleId": "6835fe9db57507b46d1e7369"
   }
   ```
+
   Expected Response:
+
   ```json
   {
-      "message": "User registered successfully"
+    "message": "User registered successfully"
   }
   ```
 
@@ -81,15 +100,15 @@ We implemented user registration and login functionality with JWT authentication
   Payload:
   ```json
   {
-      "email": "admin@example.com",
-      "password": "password123"
+    "email": "admin@example.com",
+    "password": "password123"
   }
   ```
   Expected Response:
   ```json
   {
-      "token": "<jwt_token>",
-      "user": {}
+    "token": "<jwt_token>",
+    "user": {}
   }
   ```
 
@@ -111,6 +130,7 @@ Viewer id (default): 683607d382cf7e288f7ca460
   Payload: none
 
   Expected Response:
+
   ```json
   {
     {
@@ -129,6 +149,7 @@ Viewer id (default): 683607d382cf7e288f7ca460
   Payload: none
 
   Expected Response:
+
   ```json
   {
     {
@@ -143,6 +164,7 @@ Viewer id (default): 683607d382cf7e288f7ca460
   Payload: none
 
   Expected Response: Array with all the users
+
   ```json
   {
     {
@@ -154,8 +176,8 @@ Viewer id (default): 683607d382cf7e288f7ca460
   }
   ```
 
-
 ## 4. Protected Routes
+
 We implemented middleware to secure protected routes using JWT authentication.
 
 - Middleware: `authMiddleware.js` verifies tokens from the Authorization header.
@@ -164,9 +186,9 @@ We implemented middleware to secure protected routes using JWT authentication.
   Expected Response:
   ```json
   {
-      "id": "user_id_here",
-      "username": "testuser",
-      "email": "test@example.com"
+    "id": "user_id_here",
+    "username": "testuser",
+    "email": "test@example.com"
   }
   ```
 
@@ -244,24 +266,25 @@ Authorization: Bearer <jwt_token>
 ["Visit", "Collect", "Storage"]
 ```
 
-
 # Testing
 
 I tested the local endpoints with Postman:
+
 - Successfully registered and logged in a test user.
 - Verified the JWT token-based authentication for protected routes.
 - Confirmed MongoDB Atlas stores the test user in the `users` collection.
 
-To run tests: 
+To run tests:
 
 ```
 npx jest
 ```
 
-There are two tests for "roles", both test if the roles exists and if they are correct. 
+There are two tests for "roles", both test if the roles exists and if they are correct.
 
 1. must return all predefined roles
 2. must return exactly 3 roles
 
 # Next Steps
+
 Continue developing the backend, including additional routes like waste pickup APIs.
