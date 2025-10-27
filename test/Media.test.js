@@ -1,8 +1,10 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Role = require('../models/Role');
 const mongoose = require('mongoose');
 const request = require('supertest');
 const app = require('../server');
+const bcrypt = require('bcrypt');
 
 describe('Media endpoints', () => {
   let authToken;
@@ -13,7 +15,19 @@ describe('Media endpoints', () => {
     server = app.listen(0);
     await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 5000 });
 
-    adminUser = await User.findById('6836081382cf7e288f7ca468');
+    // Ensure admin role and user exist
+    let adminRole = await Role.findOne({ name: 'Admin' });
+    adminUser = await User.findOne({ email: 'admin@test.com' });
+    if (!adminUser) {
+      adminUser = await User.create({
+        username: 'admin_test',
+        email: 'admin@test.com',
+        password: 'Admin@123',
+        phoneNumber: '11999999999',
+        address: 'Test Address',
+        roleId: adminRole._id
+      });
+    }
 
     authToken = jwt.sign(
       { id: adminUser._id, username: adminUser.username, email: adminUser.email },
