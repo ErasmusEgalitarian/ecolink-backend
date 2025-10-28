@@ -1,6 +1,13 @@
 const { z } = require('zod');
-// at least 1 special case, 1 uppercase, 1 lowercase, 1 number
+
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#._-]).+$/;
+const phoneRegex = /^\d{10}$|^\d{11}$/;
+const cpfRegex = /^\d{11}$/;
+
+/**
+ * Add business rule check for password if password change is required
+ * when the password policy is updated
+ */
 
 const loginSchema = z.object({
     email: z.string({
@@ -13,10 +20,8 @@ const loginSchema = z.object({
     password: z.string({
         required_error: 'Password is required'
     })
-    .min(8, 'Password must be at least 8 characters long')
-    .max(24, 'Password must be at most 24 characters long')
-    .regex(passwordRegex, 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#._-)')
 });
+
 
 const registerSchema = z.object({
     username: z.string({
@@ -40,19 +45,19 @@ const registerSchema = z.object({
     .max(24, 'Password must be at most 24 characters long')
     .regex(passwordRegex, 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#._-)'),
     
-    phoneNumber: z.string()
-        .min(10, 'Phone number must be at least 10 characters')
-        .trim()
-        .optional(),
+    address: z.string()
+        .min(5, 'Address must be at least 5 characters long')
+        .trim(),
     
-    address: z.string({
-        required_error: 'Address is required'
-    })
-    .min(5, 'Address must be at least 5 characters long')
-    .trim(),
+    phone: z.string()
+        .regex(phoneRegex, 'Phone must have 10 or 11 digits')
+        .nullable(),
+    
+    cpf: z.string()
+        .regex(cpfRegex, 'CPF must have exactly 11 digits')
+        .nullable(),
     
     roleId: z.string()
-        .optional()
 });
 
 module.exports = {
