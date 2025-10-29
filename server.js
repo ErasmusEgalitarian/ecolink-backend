@@ -7,14 +7,17 @@ const path = require("path");
 
 const cors = require("cors");
 
+const mongoSanitize = require("express-mongo-sanitize");
+
 const uploadDir = path.join(__dirname, "uploads"); // -> create upload folder locally
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
-
+  
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors());s
+app.use(mongoSanitize()); // sanitização nosqsl injections
 
 const authRoutes = require("./routes/auth");
 app.use("/api/auth", authRoutes);
@@ -51,3 +54,4 @@ if (require.main === module) {
   process.on("SIGTERM", () => server.close());
   process.on("SIGINT", () => server.close());
 }
+
