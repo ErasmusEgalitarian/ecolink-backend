@@ -1,3 +1,4 @@
 .env
+.tool-versions
 /node_modules
 /uploads
