@@ -7,6 +7,9 @@ const { loginSchema, registerSchema } = require('../schemas/authSchemas');
 const router = express.Router();
 
 // Register
+
+// in future remove phonenumber and add cpf, createdAt, lastLogin, wasteSaved, carbonCredit, totalpickups
+
 router.post('/register', validate(registerSchema), async (req, res) => {
     try {
         const { username, email, password, phoneNumber, address } = req.body;
