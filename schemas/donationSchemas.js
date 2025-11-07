@@ -1,5 +1,6 @@
 const { z } = require('zod');
 
+// donationDate isn't on donation routes yet, but prepared for future use
 const createDonationSchema = z.object({
     userId: z.string({
         required_error: 'User ID is required'
@@ -31,7 +32,7 @@ const createDonationSchema = z.object({
         .or(z.date().optional())
 });
 
-
+// updateDonationSchema isn't on donation routes yet, but prepared for future use
 const updateDonationSchema = z.object({
     materialType: z.string()
         .min(2, 'Material type must be at least 2 characters long')

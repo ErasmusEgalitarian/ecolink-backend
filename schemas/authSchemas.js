@@ -18,8 +18,10 @@ const loginSchema = z.object({
     .trim(),
     
     password: z.string({
-        required_error: 'Password is required'
+        required_error: 'Password is required',
+        invalid_type_error: 'Password must be a string'
     })
+    .min(1, 'Password cannot be empty')
 });
 
 
@@ -45,19 +47,25 @@ const registerSchema = z.object({
     .max(24, 'Password must be at most 24 characters long')
     .regex(passwordRegex, 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#._-)'),
     
-    address: z.string()
+    address: z.string({
+        required_error: 'Address is required'
+    })
         .min(5, 'Address must be at least 5 characters long')
         .trim(),
     
-    phone: z.string()
-        .regex(phoneRegex, 'Phone must have 10 or 11 digits')
-        .nullable(),
+    phone: z.string({
+        required_error: 'Phone is required'
+    })
+        .regex(phoneRegex, 'Phone must have 10 or 11 digits'),
     
-    cpf: z.string()
-        .regex(cpfRegex, 'CPF must have exactly 11 digits')
-        .nullable(),
+    cpf: z.string({
+        required_error: 'CPF is required'
+    })
+        .regex(cpfRegex, 'CPF must have exactly 11 digits'),
     
-    roleId: z.string()
+    roleId: z.string({
+        required_error: 'Role ID is required'
+    })
 });
 
 module.exports = {
