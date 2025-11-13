@@ -1,15 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const Donation = require('../models/Donation'); // Caminho para o seu modelo
+const Donation = require('../models/Donation');
+const validate = require('../middlewares/validate');
+const { createDonationSchema } = require('../schemas/donationSchemas');
 
-// Rota para criar uma doação
-router.post('/', async (req, res) => {
+// Route to create a donation
+router.post('/', validate(createDonationSchema), async (req, res) => {
     try {
         console.log('Request Body:', req.body); // Log the incoming request
 
         const { userId, materialType, description = '', qtdMaterial } = req.body;
 
-        // Criação de uma nova doação
+        // Create a new donation
         const donation = new Donation({
             userId,
             materialType,
@@ -17,7 +19,7 @@ router.post('/', async (req, res) => {
             qtdMaterial,
         });
 
-        // Salva no banco de dados
+        // Save to database
         const savedDonation = await donation.save();
         res.status(201).json(savedDonation);
     } catch (error) {

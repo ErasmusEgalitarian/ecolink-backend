@@ -5,6 +5,8 @@ const router = express.Router();
 const upload = require('../config/multer');
 const Media = require('../models/Media');
 const authMiddleware = require('../middlewares/authMiddleware');
+const validate = require('../middlewares/validate');
+const { uploadMediaSchema } = require('../schemas/mediaSchemas');
 
 const uploadDir = path.join(__dirname, '..', 'uploads');
 
@@ -12,7 +14,7 @@ const uploadDir = path.join(__dirname, '..', 'uploads');
 // TODO: implement pagination with page & limit query params
 // TODO: allow dynamic update of media (e.g., edit category, delete, rename)
 
-router.post('/upload', authMiddleware, upload.single('file'), async (req, res) => {
+router.post('/upload', authMiddleware, upload.single('file'), validate(uploadMediaSchema), async (req, res) => {
   const { category } = req.body;
 
   if (!req.file) return res.status(400).send('File not sent');
