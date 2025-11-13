@@ -7,6 +7,8 @@ const path = require("path");
 
 const cors = require("cors");
 
+const corsOptions = require('./config/cors.config');
+
 const uploadDir = path.join(__dirname, "uploads"); // -> create upload folder locally
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
@@ -14,7 +16,7 @@ if (!fs.existsSync(uploadDir)) {
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors(corsOptions));
 
 const authRoutes = require("./routes/auth");
 app.use("/api/auth", authRoutes);
