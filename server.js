@@ -4,6 +4,7 @@ const express = require("express");
 const connectDB = require("./config/db");
 const fs = require("fs");
 const path = require("path");
+const security = require("./middlewares/security");
 
 const cors = require("cors");
 
@@ -17,6 +18,7 @@ if (!fs.existsSync(uploadDir)) {
 const app = express();
 app.use(express.json());
 app.use(cors(corsOptions));
+app.use(security());
 
 const authRoutes = require("./routes/auth");
 app.use("/api/auth", authRoutes);
@@ -33,6 +35,8 @@ app.use("/media", mediaRoutes);
 
 const rolesRoutes = require("./routes/roles");
 app.use("/api/roles", rolesRoutes);
+
+
 
 // Connect to MongoDB
 connectDB();
