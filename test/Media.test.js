@@ -25,6 +25,8 @@ describe('Media endpoints', () => {
         password: 'Admin@123',
         phoneNumber: '11999999999',
         address: 'Test Address',
+        cpf: "97141414002",
+        phone: '11999999999',
         roleId: adminRole._id
       });
     }
