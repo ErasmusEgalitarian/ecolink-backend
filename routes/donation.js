@@ -7,6 +7,8 @@ const validate = require('../middlewares/validate');
 const verifyToken = require('../middlewares/authMiddleware');
 const { createDonationSchema } = require('../schemas/donationSchemas');
 
+// Needs to validate that mediaId exists and category is "Storage"
+
 router.post('/', verifyToken, validate(createDonationSchema), async (req, res) => {
     try {
 
