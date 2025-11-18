@@ -8,11 +8,9 @@ const router = express.Router();
 
 // Register
 
-// in future remove phonenumber and add cpf, createdAt, lastLogin, wasteSaved, carbonCredit, totalpickups
-
 router.post('/register', validate(registerSchema), async (req, res) => {
     try {
-        const { username, email, password, phoneNumber, address } = req.body;
+        const { username, email, password, address, phone, cpf } = req.body;
 
         // Check if the user already exists
         const existingUser = await User.findOne({ email });
@@ -28,8 +26,9 @@ router.post('/register', validate(registerSchema), async (req, res) => {
             username,
             email,
             password: hashedPassword,
-            phoneNumber,
-            address
+            address,
+            phone,
+            cpf
         });
         await newUser.save();
 
@@ -55,6 +54,11 @@ router.post('/login', validate(loginSchema), async (req, res) => {
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
+
+        await User.updateOne(
+            { _id: user._id },
+            { $currentDate: { lastlogin: true } }
+        );
 
         // Generate a JWT token
         const token = jwt.sign(
