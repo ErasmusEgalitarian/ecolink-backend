@@ -15,6 +15,7 @@ const mockResponse = () => {
 
 const mockNext = jest.fn();
 
+// Change the ecopointId when the Ecopoint model is available
 describe('Donation Schema Validation', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -23,8 +24,8 @@ describe('Donation Schema Validation', () => {
     describe('Create Donation Schema - Success Cases', () => {
         it('should successfully validate valid donation data with all required fields', () => {
             const validDonation = {
-                userId: '507f1f77bcf86cd799439011',
-                materialType: 'Plastic',
+                ecopointId: '1',
+                materialType: 'plastic',
                 description: 'Clean plastic bottles',
                 qtdMaterial: 10
             };
@@ -41,8 +42,8 @@ describe('Donation Schema Validation', () => {
 
         it('should successfully validate donation without optional description', () => {
             const validDonation = {
-                userId: '507f1f77bcf86cd799439011',
-                materialType: 'Glass',
+                ecopointId: '1',
+                materialType: 'glass',
                 qtdMaterial: 5
             };
 
@@ -56,10 +57,10 @@ describe('Donation Schema Validation', () => {
             expect(req.body.description).toBe(''); // Default value
         });
 
-        it('should trim whitespace from userId and materialType', () => {
+        it('should trim whitespace from ecopointId', () => {
             const validDonation = {
-                userId: '  507f1f77bcf86cd799439011  ',
-                materialType: '  Metal  ',
+                ecopointId: '  1  ',
+                materialType: 'metal',
                 qtdMaterial: 3
             };
 
@@ -69,33 +70,36 @@ describe('Donation Schema Validation', () => {
 
             middleware(req, res, mockNext);
 
-            expect(req.body.userId).toBe('507f1f77bcf86cd799439011');
-            expect(req.body.materialType).toBe('Metal');
+            expect(req.body.ecopointId).toBe('1');
+            expect(req.body.materialType).toBe('metal');
             expect(mockNext).toHaveBeenCalledTimes(1);
         });
 
-        it('should accept donation with donationDate as datetime string', () => {
-            const validDonation = {
-                userId: '507f1f77bcf86cd799439011',
-                materialType: 'Paper',
-                qtdMaterial: 20,
-                donationDate: '2025-11-06T10:30:00Z'
-            };
+        it('should validate with all material types', () => {
+            const materialTypes = ['plastic', 'metal', 'glass', 'paper'];
+            
+            materialTypes.forEach(type => {
+                const validDonation = {
+                    ecopointId: '1',
+                    materialType: type,
+                    qtdMaterial: 5
+                };
 
-            const req = mockRequest(validDonation);
-            const res = mockResponse();
-            const middleware = validate(createDonationSchema);
+                const req = mockRequest(validDonation);
+                const res = mockResponse();
+                const middleware = validate(createDonationSchema);
 
-            middleware(req, res, mockNext);
+                middleware(req, res, mockNext);
 
-            expect(mockNext).toHaveBeenCalledTimes(1);
+                expect(mockNext).toHaveBeenCalled();
+            });
         });
     });
 
     describe('Update Donation Schema - Success Cases', () => {
         it('should successfully validate update with single field', () => {
             const updateData = {
-                materialType: 'Cardboard'
+                materialType: 'plastic'
             };
 
             const req = mockRequest(updateData);
@@ -109,7 +113,7 @@ describe('Donation Schema Validation', () => {
 
         it('should successfully validate update with multiple fields', () => {
             const updateData = {
-                materialType: 'Aluminum',
+                materialType: 'metal',
                 description: 'Recycled aluminum cans',
                 qtdMaterial: 15
             };
@@ -124,11 +128,11 @@ describe('Donation Schema Validation', () => {
         });
     });
 
-    describe('BVA - UserId Validation', () => {
-        it('should reject empty userId', () => {
+    describe('BVA - EcopointId Validation', () => {
+        it('should reject empty ecopointId', () => {
             const invalidDonation = {
-                userId: '',
-                materialType: 'Plastic',
+                ecopointId: '',
+                materialType: 'plastic',
                 qtdMaterial: 5
             };
 
@@ -143,17 +147,17 @@ describe('Donation Schema Validation', () => {
                 message: 'Validation error',
                 errors: expect.arrayContaining([
                     expect.objectContaining({
-                        field: 'userId',
-                        message: 'User ID cannot be empty'
+                        field: 'ecopointId',
+                        message: 'Ecopoint ID cannot be empty'
                     })
                 ])
             });
             expect(mockNext).not.toHaveBeenCalled();
         });
 
-        it('should reject when userId is missing', () => {
+        it('should reject when ecopointId is missing', () => {
             const invalidDonation = {
-                materialType: 'Glass',
+                materialType: 'glass',
                 qtdMaterial: 5
             };
 
@@ -168,8 +172,8 @@ describe('Donation Schema Validation', () => {
                 message: 'Validation error',
                 errors: expect.arrayContaining([
                     expect.objectContaining({
-                        field: 'userId',
-                        message: expect.stringMatching(/User ID cannot be empty|expected string, received undefined/)
+                        field: 'ecopointId',
+                        message: expect.stringMatching(/Ecopoint ID is required|expected string, received undefined/)
                     })
                 ])
             });
@@ -178,10 +182,10 @@ describe('Donation Schema Validation', () => {
     });
 
     describe('BVA - MaterialType Validation', () => {
-        it('should reject materialType with 1 character (below minimum)', () => {
+        it('should reject invalid materialType', () => {
             const invalidDonation = {
-                userId: '507f1f77bcf86cd799439011',
-                materialType: 'P',
+                ecopointId: '1',
+                materialType: 'wood',
                 qtdMaterial: 5
             };
 
@@ -197,32 +201,36 @@ describe('Donation Schema Validation', () => {
                 errors: expect.arrayContaining([
                     expect.objectContaining({
                         field: 'materialType',
-                        message: 'Material type must be at least 2 characters long'
+                        message: expect.stringMatching(/Invalid option|expected one of/)
                     })
                 ])
             });
             expect(mockNext).not.toHaveBeenCalled();
         });
 
-        it('should accept materialType with exactly 2 characters (minimum boundary)', () => {
-            const validDonation = {
-                userId: '507f1f77bcf86cd799439011',
-                materialType: 'Ab',
-                qtdMaterial: 5
-            };
+        it('should accept all valid material types', () => {
+            const validTypes = ['plastic', 'metal', 'glass', 'paper'];
+            
+            validTypes.forEach(type => {
+                const validDonation = {
+                    ecopointId: '1',
+                    materialType: type,
+                    qtdMaterial: 5
+                };
 
-            const req = mockRequest(validDonation);
-            const res = mockResponse();
-            const middleware = validate(createDonationSchema);
+                const req = mockRequest(validDonation);
+                const res = mockResponse();
+                const middleware = validate(createDonationSchema);
 
-            middleware(req, res, mockNext);
+                middleware(req, res, mockNext);
 
-            expect(mockNext).toHaveBeenCalledTimes(1);
+                expect(mockNext).toHaveBeenCalled();
+            });
         });
 
         it('should reject when materialType is missing', () => {
             const invalidDonation = {
-                userId: '507f1f77bcf86cd799439011',
+                ecopointId: '1',
                 qtdMaterial: 5
             };
 
@@ -238,7 +246,7 @@ describe('Donation Schema Validation', () => {
                 errors: expect.arrayContaining([
                     expect.objectContaining({
                         field: 'materialType',
-                        message: expect.stringMatching(/Material type is required|Material type must be at least 2 characters|expected string, received undefined/)
+                        message: expect.stringMatching(/Material type is required|expected/)
                     })
                 ])
             });
@@ -249,8 +257,8 @@ describe('Donation Schema Validation', () => {
     describe('BVA - Quantity (qtdMaterial) Validation', () => {
         it('should reject when quantity is missing', () => {
             const invalidDonation = {
-                userId: '507f1f77bcf86cd799439011',
-                materialType: 'Plastic'
+                ecopointId: '1',
+                materialType: 'plastic'
             };
 
             const req = mockRequest(invalidDonation);
@@ -274,8 +282,8 @@ describe('Donation Schema Validation', () => {
 
         it('should reject when quantity is not a number', () => {
             const invalidDonation = {
-                userId: '507f1f77bcf86cd799439011',
-                materialType: 'Glass',
+                ecopointId: '1',
+                materialType: 'glass',
                 qtdMaterial: 'ten'
             };
 
@@ -300,8 +308,8 @@ describe('Donation Schema Validation', () => {
 
         it('should reject quantity of 0 (not positive)', () => {
             const invalidDonation = {
-                userId: '507f1f77bcf86cd799439011',
-                materialType: 'Metal',
+                ecopointId: '1',
+                materialType: 'metal',
                 qtdMaterial: 0
             };
 
@@ -326,8 +334,8 @@ describe('Donation Schema Validation', () => {
 
         it('should reject negative quantity', () => {
             const invalidDonation = {
-                userId: '507f1f77bcf86cd799439011',
-                materialType: 'Paper',
+                ecopointId: '1',
+                materialType: 'paper',
                 qtdMaterial: -5
             };
 
@@ -343,8 +351,8 @@ describe('Donation Schema Validation', () => {
 
         it('should accept quantity of exactly 1 (minimum positive)', () => {
             const validDonation = {
-                userId: '507f1f77bcf86cd799439011',
-                materialType: 'Plastic',
+                ecopointId: '1',
+                materialType: 'plastic',
                 qtdMaterial: 1
             };
 
@@ -359,8 +367,8 @@ describe('Donation Schema Validation', () => {
 
         it('should reject decimal quantity (must be integer)', () => {
             const invalidDonation = {
-                userId: '507f1f77bcf86cd799439011',
-                materialType: 'Glass',
+                ecopointId: '1',
+                materialType: 'glass',
                 qtdMaterial: 5.5
             };
 
@@ -385,8 +393,8 @@ describe('Donation Schema Validation', () => {
 
         it('should accept large integer quantity', () => {
             const validDonation = {
-                userId: '507f1f77bcf86cd799439011',
-                materialType: 'Aluminum',
+                ecopointId: '1',
+                materialType: 'metal',
                 qtdMaterial: 999999
             };
 
@@ -403,8 +411,8 @@ describe('Donation Schema Validation', () => {
     describe('BVA - Description Validation', () => {
         it('should accept empty description', () => {
             const validDonation = {
-                userId: '507f1f77bcf86cd799439011',
-                materialType: 'Plastic',
+                ecopointId: '1',
+                materialType: 'plastic',
                 qtdMaterial: 5,
                 description: ''
             };
@@ -420,8 +428,8 @@ describe('Donation Schema Validation', () => {
 
         it('should trim whitespace from description', () => {
             const validDonation = {
-                userId: '507f1f77bcf86cd799439011',
-                materialType: 'Glass',
+                ecopointId: '1',
+                materialType: 'glass',
                 qtdMaterial: 3,
                 description: '  Clean bottles  '
             };
@@ -459,9 +467,9 @@ describe('Donation Schema Validation', () => {
             expect(mockNext).not.toHaveBeenCalled();
         });
 
-        it('should reject materialType with 1 character in update', () => {
+        it('should reject invalid materialType in update', () => {
             const invalidUpdate = {
-                materialType: 'P'
+                materialType: 'cardboard'
             };
 
             const req = mockRequest(invalidUpdate);
@@ -508,8 +516,8 @@ describe('Donation Schema Validation', () => {
     describe('Multiple Field Errors', () => {
         it('should return multiple validation errors for multiple invalid fields', () => {
             const invalidDonation = {
-                userId: '',
-                materialType: 'P',
+                ecopointId: '',
+                materialType: 'invalid',
                 qtdMaterial: -5
             };
 
@@ -523,7 +531,7 @@ describe('Donation Schema Validation', () => {
             expect(res.json).toHaveBeenCalledWith({
                 message: 'Validation error',
                 errors: expect.arrayContaining([
-                    expect.objectContaining({ field: 'userId' }),
+                    expect.objectContaining({ field: 'ecopointId' }),
                     expect.objectContaining({ field: 'materialType' }),
                     expect.objectContaining({ field: 'qtdMaterial' })
                 ])
