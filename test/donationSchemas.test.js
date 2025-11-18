@@ -27,7 +27,8 @@ describe('Donation Schema Validation', () => {
                 ecopointId: '1',
                 materialType: 'plastic',
                 description: 'Clean plastic bottles',
-                qtdMaterial: 10
+                qtdMaterial: 10,
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(validDonation);
@@ -44,7 +45,8 @@ describe('Donation Schema Validation', () => {
             const validDonation = {
                 ecopointId: '1',
                 materialType: 'glass',
-                qtdMaterial: 5
+                qtdMaterial: 5,
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(validDonation);
@@ -61,7 +63,8 @@ describe('Donation Schema Validation', () => {
             const validDonation = {
                 ecopointId: '  1  ',
                 materialType: 'metal',
-                qtdMaterial: 3
+                qtdMaterial: 3,
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(validDonation);
@@ -82,7 +85,8 @@ describe('Donation Schema Validation', () => {
                 const validDonation = {
                     ecopointId: '1',
                     materialType: type,
-                    qtdMaterial: 5
+                    qtdMaterial: 5,
+                    mediaId: '507f1f77bcf86cd799439011'
                 };
 
                 const req = mockRequest(validDonation);
@@ -133,7 +137,8 @@ describe('Donation Schema Validation', () => {
             const invalidDonation = {
                 ecopointId: '',
                 materialType: 'plastic',
-                qtdMaterial: 5
+                qtdMaterial: 5,
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(invalidDonation);
@@ -158,7 +163,8 @@ describe('Donation Schema Validation', () => {
         it('should reject when ecopointId is missing', () => {
             const invalidDonation = {
                 materialType: 'glass',
-                qtdMaterial: 5
+                qtdMaterial: 5,
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(invalidDonation);
@@ -186,7 +192,8 @@ describe('Donation Schema Validation', () => {
             const invalidDonation = {
                 ecopointId: '1',
                 materialType: 'wood',
-                qtdMaterial: 5
+                qtdMaterial: 5,
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(invalidDonation);
@@ -215,7 +222,8 @@ describe('Donation Schema Validation', () => {
                 const validDonation = {
                     ecopointId: '1',
                     materialType: type,
-                    qtdMaterial: 5
+                    qtdMaterial: 5,
+                    mediaId: '507f1f77bcf86cd799439011'
                 };
 
                 const req = mockRequest(validDonation);
@@ -231,7 +239,8 @@ describe('Donation Schema Validation', () => {
         it('should reject when materialType is missing', () => {
             const invalidDonation = {
                 ecopointId: '1',
-                qtdMaterial: 5
+                qtdMaterial: 5,
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(invalidDonation);
@@ -258,7 +267,8 @@ describe('Donation Schema Validation', () => {
         it('should reject when quantity is missing', () => {
             const invalidDonation = {
                 ecopointId: '1',
-                materialType: 'plastic'
+                materialType: 'plastic',
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(invalidDonation);
@@ -284,7 +294,8 @@ describe('Donation Schema Validation', () => {
             const invalidDonation = {
                 ecopointId: '1',
                 materialType: 'glass',
-                qtdMaterial: 'ten'
+                qtdMaterial: 'ten',
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(invalidDonation);
@@ -310,7 +321,8 @@ describe('Donation Schema Validation', () => {
             const invalidDonation = {
                 ecopointId: '1',
                 materialType: 'metal',
-                qtdMaterial: 0
+                qtdMaterial: 0,
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(invalidDonation);
@@ -336,7 +348,8 @@ describe('Donation Schema Validation', () => {
             const invalidDonation = {
                 ecopointId: '1',
                 materialType: 'paper',
-                qtdMaterial: -5
+                qtdMaterial: -5,
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(invalidDonation);
@@ -353,7 +366,8 @@ describe('Donation Schema Validation', () => {
             const validDonation = {
                 ecopointId: '1',
                 materialType: 'plastic',
-                qtdMaterial: 1
+                qtdMaterial: 1,
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(validDonation);
@@ -369,7 +383,8 @@ describe('Donation Schema Validation', () => {
             const invalidDonation = {
                 ecopointId: '1',
                 materialType: 'glass',
-                qtdMaterial: 5.5
+                qtdMaterial: 5.5,
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(invalidDonation);
@@ -395,7 +410,8 @@ describe('Donation Schema Validation', () => {
             const validDonation = {
                 ecopointId: '1',
                 materialType: 'metal',
-                qtdMaterial: 999999
+                qtdMaterial: 999999,
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(validDonation);
@@ -414,7 +430,8 @@ describe('Donation Schema Validation', () => {
                 ecopointId: '1',
                 materialType: 'plastic',
                 qtdMaterial: 5,
-                description: ''
+                description: '',
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(validDonation);
@@ -431,7 +448,8 @@ describe('Donation Schema Validation', () => {
                 ecopointId: '1',
                 materialType: 'glass',
                 qtdMaterial: 3,
-                description: '  Clean bottles  '
+                description: '  Clean bottles  ',
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(validDonation);
@@ -443,6 +461,36 @@ describe('Donation Schema Validation', () => {
             expect(req.body.description).toBe('Clean bottles');
             expect(mockNext).toHaveBeenCalledTimes(1);
         });
+    });
+
+    describe('BVA - MediaId Validation', () => {
+        it('should reject when mediaId is missing', () => {
+            const invalidDonation = {
+                ecopointId: '1',
+                materialType: 'plastic',
+                qtdMaterial: 5
+            };
+
+            const req = mockRequest(invalidDonation);
+            const res = mockResponse();
+            const middleware = validate(createDonationSchema);
+
+            middleware(req, res, mockNext);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'Validation error',
+                errors: expect.arrayContaining([
+                    expect.objectContaining({
+                        field: 'mediaId',
+                        message: expect.stringMatching(/Media ID is required|expected string, received undefined/)
+                    })
+                ])
+            });
+            expect(mockNext).not.toHaveBeenCalled();
+        });
+
+       
     });
 
     describe('Update Donation Schema - BVA', () => {
@@ -518,7 +566,8 @@ describe('Donation Schema Validation', () => {
             const invalidDonation = {
                 ecopointId: '',
                 materialType: 'invalid',
-                qtdMaterial: -5
+                qtdMaterial: -5,
+                mediaId: '507f1f77bcf86cd799439011'
             };
 
             const req = mockRequest(invalidDonation);
