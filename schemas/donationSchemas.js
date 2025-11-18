@@ -1,18 +1,16 @@
 const { z } = require('zod');
 
-// donationDate isn't on donation routes yet, but prepared for future use
 const createDonationSchema = z.object({
-    userId: z.string({
-        required_error: 'User ID is required'
+    ecopointId: z.string({
+        required_error: 'Ecopoint ID is required'
     })
-    .min(1, 'User ID cannot be empty')
+    .min(1, 'Ecopoint ID cannot be empty')
     .trim(),
     
-    materialType: z.string({
-        required_error: 'Material type is required'
-    })
-    .min(2, 'Material type must be at least 2 characters long')
-    .trim(),
+    materialType: z.enum(['plastic', 'metal', 'glass', 'paper'], {
+        required_error: 'Material type is required',
+        invalid_type_error: 'Material type must be one of: plastic, metal, glass, paper'
+    }),
     
     description: z.string()
         .trim()
@@ -26,18 +24,17 @@ const createDonationSchema = z.object({
     .positive('Quantity must be a positive number')
     .int('Quantity must be an integer'),
     
-    donationDate: z.string()
-        .datetime()
-        .optional()
-        .or(z.date().optional())
+    mediaId: z.string({
+        required_error: 'Media ID is required'
+    })
+    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid Media ID format')
 });
 
 // updateDonationSchema isn't on donation routes yet, but prepared for future use
 const updateDonationSchema = z.object({
-    materialType: z.string()
-        .min(2, 'Material type must be at least 2 characters long')
-        .trim()
-        .optional(),
+    materialType: z.enum(['plastic', 'metal', 'glass', 'paper'], {
+        invalid_type_error: 'Material type must be one of: plastic, metal, glass, paper'
+    }).optional(),
     
     description: z.string()
         .trim()
