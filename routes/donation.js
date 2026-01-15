@@ -1,29 +1,55 @@
 const express = require('express');
 const router = express.Router();
 const Donation = require('../models/Donation');
+const Pickup = require('../models/Pickup');
+const Media = require('../models/Media');
 const validate = require('../middlewares/validate');
+const verifyToken = require('../middlewares/authMiddleware');
 const { createDonationSchema } = require('../schemas/donationSchemas');
 
-// Route to create a donation
-router.post('/', validate(createDonationSchema), async (req, res) => {
+// Needs to validate that mediaId exists and category is "Storage"
+
+router.post('/', verifyToken, validate(createDonationSchema), async (req, res) => {
     try {
-        console.log('Request Body:', req.body); // Log the incoming request
 
-        const { userId, materialType, description = '', qtdMaterial } = req.body;
+        const { ecopointId, materialType, description = '', qtdMaterial, mediaId } = req.body;
 
-        // Create a new donation
+        const mediaExists = await Media.findById(mediaId);
+        if (!mediaExists) {
+            return res.status(404).json({ 
+                message: 'Media not found',
+                error: `Media with ID ${mediaId} does not exist` 
+            });
+        }
+
         const donation = new Donation({
-            userId,
+            userId: req.user.id, 
+            ecopointId,
             materialType,
             description,
             qtdMaterial,
+            mediaId: mediaId, 
         });
 
-        // Save to database
         const savedDonation = await donation.save();
-        res.status(201).json(savedDonation);
+        
+        const pickup = new Pickup({
+            donationId: savedDonation._id,
+            userId: req.user.id,
+        });
+
+        const savedPickup = await pickup.save();
+
+        await savedDonation.populate('mediaId');
+
+        res.status(201).json({
+            message: 'Donation and pickup created successfully',
+            donation: savedDonation,
+            pickup: savedPickup
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Error saving donation', error });
+        console.error('Error saving donation:', error);
+        res.status(500).json({ message: 'Error saving donation', error: error.message });
     }
 });
 
