@@ -1,0 +1,514 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-01-21T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "resources": [
+    {
+      "_id": "wrk_ecolink",
+      "_type": "workspace",
+      "name": "Ecolink Backend API",
+      "description": "API completa do Ecolink - CRUD de Users, Donations, Pickups, Media e Roles",
+      "scope": null
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:5000",
+        "token_admin": "",
+        "token_editor": "",
+        "token_viewer": "",
+        "user_id": "",
+        "media_id": "",
+        "donation_id": "",
+        "pickup_id": "",
+        "role_admin": "683607d382cf7e288f7ca45e",
+        "role_editor": "683607d382cf7e288f7ca45f",
+        "role_viewer": "683607d382cf7e288f7ca460"
+      },
+      "parentId": "wrk_ecolink"
+    },
+    {
+      "_id": "folder_auth",
+      "_type": "request_group",
+      "name": "🔐 Auth",
+      "parentId": "wrk_ecolink"
+    },
+    {
+      "_id": "req_register_admin",
+      "_type": "request",
+      "name": "Register Admin",
+      "method": "POST",
+      "url": "{{ base_url }}/api/auth/register",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"username\": \"admin\",\n  \"email\": \"admin@ecolink.com\",\n  \"password\": \"Admin@123\",\n  \"address\": \"Rua das Flores, 123 - Centro\",\n  \"phone\": \"11987654321\",\n  \"cpf\": \"12345678909\",\n  \"roleId\": \"{{ role_admin }}\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parentId": "folder_auth"
+    },
+    {
+      "_id": "req_register_editor",
+      "_type": "request",
+      "name": "Register Editor",
+      "method": "POST",
+      "url": "{{ base_url }}/api/auth/register",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"username\": \"editor1\",\n  \"email\": \"editor@ecolink.com\",\n  \"password\": \"Editor@123\",\n  \"address\": \"Avenida Paulista, 1000\",\n  \"phone\": \"11988887777\",\n  \"cpf\": \"11144477735\",\n  \"roleId\": \"{{ role_editor }}\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parentId": "folder_auth"
+    },
+    {
+      "_id": "req_register_viewer",
+      "_type": "request",
+      "name": "Register Viewer",
+      "method": "POST",
+      "url": "{{ base_url }}/api/auth/register",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"username\": \"viewer1\",\n  \"email\": \"viewer@ecolink.com\",\n  \"password\": \"Viewer@123\",\n  \"address\": \"Rua Augusta, 500\",\n  \"phone\": \"11977776666\",\n  \"cpf\": \"52998224725\",\n  \"roleId\": \"{{ role_viewer }}\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parentId": "folder_auth"
+    },
+    {
+      "_id": "req_login_admin",
+      "_type": "request",
+      "name": "Login Admin",
+      "method": "POST",
+      "url": "{{ base_url }}/api/auth/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"admin@ecolink.com\",\n  \"password\": \"Admin@123\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parentId": "folder_auth"
+    },
+    {
+      "_id": "req_login_editor",
+      "_type": "request",
+      "name": "Login Editor",
+      "method": "POST",
+      "url": "{{ base_url }}/api/auth/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"editor@ecolink.com\",\n  \"password\": \"Editor@123\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parentId": "folder_auth"
+    },
+    {
+      "_id": "req_login_viewer",
+      "_type": "request",
+      "name": "Login Viewer",
+      "method": "POST",
+      "url": "{{ base_url }}/api/auth/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"viewer@ecolink.com\",\n  \"password\": \"Viewer@123\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parentId": "folder_auth"
+    },
+    {
+      "_id": "folder_users",
+      "_type": "request_group",
+      "name": "👥 Users",
+      "parentId": "wrk_ecolink"
+    },
+    {
+      "_id": "req_get_me",
+      "_type": "request",
+      "name": "Get My Profile",
+      "method": "GET",
+      "url": "{{ base_url }}/api/users/me",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_viewer }}"
+        }
+      ],
+      "parentId": "folder_users"
+    },
+    {
+      "_id": "req_get_all_users",
+      "_type": "request",
+      "name": "Get All Users (Admin)",
+      "method": "GET",
+      "url": "{{ base_url }}/api/users?page=1&limit=10",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_admin }}"
+        }
+      ],
+      "parentId": "folder_users"
+    },
+    {
+      "_id": "req_update_profile",
+      "_type": "request",
+      "name": "Update My Profile",
+      "method": "PUT",
+      "url": "{{ base_url }}/api/users/me",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"username\": \"viewer_updated\",\n  \"address\": \"Nova Rua Augusta, 600\",\n  \"phone\": \"11966665555\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_viewer }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parentId": "folder_users"
+    },
+    {
+      "_id": "req_change_password",
+      "_type": "request",
+      "name": "Change Password",
+      "method": "PUT",
+      "url": "{{ base_url }}/api/users/me/password",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"currentPassword\": \"Viewer@123\",\n  \"newPassword\": \"NewViewer@456\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_viewer }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parentId": "folder_users"
+    },
+    {
+      "_id": "folder_roles",
+      "_type": "request_group",
+      "name": "🛡️ Roles",
+      "parentId": "wrk_ecolink"
+    },
+    {
+      "_id": "req_get_roles",
+      "_type": "request",
+      "name": "Get All Roles",
+      "method": "GET",
+      "url": "{{ base_url }}/api/roles",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_viewer }}"
+        }
+      ],
+      "parentId": "folder_roles"
+    },
+    {
+      "_id": "req_change_role",
+      "_type": "request",
+      "name": "Change User Role (Admin)",
+      "method": "PUT",
+      "url": "{{ base_url }}/api/roles/edit/{{ user_id }}",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"roleId\": \"{{ role_editor }}\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_admin }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parentId": "folder_roles"
+    },
+    {
+      "_id": "folder_media",
+      "_type": "request_group",
+      "name": "📁 Media",
+      "parentId": "wrk_ecolink"
+    },
+    {
+      "_id": "req_upload_media",
+      "_type": "request",
+      "name": "Upload Media (Storage)",
+      "method": "POST",
+      "url": "{{ base_url }}/media/upload",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "file",
+            "type": "file",
+            "fileName": ""
+          },
+          {
+            "name": "category",
+            "value": "Storage"
+          }
+        ]
+      },
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_viewer }}"
+        }
+      ],
+      "parentId": "folder_media"
+    },
+    {
+      "_id": "req_get_media",
+      "_type": "request",
+      "name": "Get All Media",
+      "method": "GET",
+      "url": "{{ base_url }}/media?page=1&limit=20",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_viewer }}"
+        }
+      ],
+      "parentId": "folder_media"
+    },
+    {
+      "_id": "req_get_categories",
+      "_type": "request",
+      "name": "Get Categories",
+      "method": "GET",
+      "url": "{{ base_url }}/media/categories",
+      "parentId": "folder_media"
+    },
+    {
+      "_id": "req_update_media",
+      "_type": "request",
+      "name": "Update Media Category",
+      "method": "PUT",
+      "url": "{{ base_url }}/media/{{ media_id }}",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"category\": \"Visit\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_viewer }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parentId": "folder_media"
+    },
+    {
+      "_id": "folder_donations",
+      "_type": "request_group",
+      "name": "🎁 Donations",
+      "parentId": "wrk_ecolink"
+    },
+    {
+      "_id": "req_create_donation",
+      "_type": "request",
+      "name": "Create Donation",
+      "method": "POST",
+      "url": "{{ base_url }}/api/donation",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"ecopointId\": \"ecopoint-sp-001\",\n  \"materialType\": \"plastic\",\n  \"description\": \"Garrafas PET limpas e separadas\",\n  \"qtdMaterial\": 10,\n  \"mediaId\": \"{{ media_id }}\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_viewer }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parentId": "folder_donations"
+    },
+    {
+      "_id": "req_get_all_donations",
+      "_type": "request",
+      "name": "Get All Donations",
+      "method": "GET",
+      "url": "{{ base_url }}/api/donation?page=1&limit=10",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_viewer }}"
+        }
+      ],
+      "parentId": "folder_donations"
+    },
+    {
+      "_id": "req_get_my_donations",
+      "_type": "request",
+      "name": "Get My Donations",
+      "method": "GET",
+      "url": "{{ base_url }}/api/donation/my?page=1&limit=10",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_viewer }}"
+        }
+      ],
+      "parentId": "folder_donations"
+    },
+    {
+      "_id": "req_update_donation",
+      "_type": "request",
+      "name": "Update Donation",
+      "method": "PUT",
+      "url": "{{ base_url }}/api/donation/{{ donation_id }}",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"materialType\": \"metal\",\n  \"description\": \"Latas de alumínio\",\n  \"qtdMaterial\": 15\n}"
+      },
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_viewer }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parentId": "folder_donations"
+    },
+    {
+      "_id": "folder_pickups",
+      "_type": "request_group",
+      "name": "🚚 Pickups",
+      "parentId": "wrk_ecolink"
+    },
+    {
+      "_id": "req_get_pending_pickups",
+      "_type": "request",
+      "name": "Get Pending Pickups (Editor)",
+      "method": "GET",
+      "url": "{{ base_url }}/api/pickups/pending?page=1&limit=10",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_editor }}"
+        }
+      ],
+      "parentId": "folder_pickups"
+    },
+    {
+      "_id": "req_get_my_pickups",
+      "_type": "request",
+      "name": "Get My Pickups",
+      "method": "GET",
+      "url": "{{ base_url }}/api/pickups/my?page=1&limit=10",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_viewer }}"
+        }
+      ],
+      "parentId": "folder_pickups"
+    },
+    {
+      "_id": "req_get_accepted_pickups",
+      "_type": "request",
+      "name": "Get My Accepted Pickups",
+      "method": "GET",
+      "url": "{{ base_url }}/api/pickups/accepted?page=1&limit=10",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_editor }}"
+        }
+      ],
+      "parentId": "folder_pickups"
+    },
+    {
+      "_id": "req_accept_pickup",
+      "_type": "request",
+      "name": "Accept Pickup (Editor)",
+      "method": "PUT",
+      "url": "{{ base_url }}/api/pickups/{{ pickup_id }}/accept",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_editor }}"
+        }
+      ],
+      "parentId": "folder_pickups"
+    },
+    {
+      "_id": "req_complete_pickup",
+      "_type": "request",
+      "name": "Complete Pickup",
+      "method": "PUT",
+      "url": "{{ base_url }}/api/pickups/{{ pickup_id }}/complete",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_editor }}"
+        }
+      ],
+      "parentId": "folder_pickups"
+    },
+    {
+      "_id": "req_cancel_pickup",
+      "_type": "request",
+      "name": "Cancel Pickup",
+      "method": "PUT",
+      "url": "{{ base_url }}/api/pickups/{{ pickup_id }}/cancel",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token_viewer }}"
+        }
+      ],
+      "parentId": "folder_pickups"
+    }
+  ]
+}

@@ -29,10 +29,22 @@ app.use("/api/donation", donationRoutes);
 
 const mediaRoutes = require("./routes/media");
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use("/media", mediaRoutes);
+app.use("/api/media", mediaRoutes);
 
 const rolesRoutes = require("./routes/roles");
 app.use("/api/roles", rolesRoutes);
+
+const pickupRoutes = require("./routes/pickups");
+app.use("/api/pickups", pickupRoutes);
+
+// Import Error Handlers (DEVE SER DEPOIS DAS ROTAS)
+const { errorHandler, notFoundHandler } = require("./middlewares/errorHandler");
+
+// 404 Handler - Captura rotas não encontradas
+app.use(notFoundHandler);
+
+// Global Error Handler - Captura TODOS os erros
+app.use(errorHandler);
 
 // Connect to MongoDB
 connectDB();
