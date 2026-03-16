@@ -10,7 +10,6 @@ const EcoPointSchema = new mongoose.Schema(
         acceptedMaterials: {type: [String], enum: ['plastic', 'metal', 'glass', 'paper']},
         status: {type: String,enum: ['Open', 'Closed', 'Full'],default: 'Open'},
         operatingHours: { type: String, default: '' },
-        phone: { type: String, default: '' },
         isActive: { type: Boolean, default: true }
     },
     { timestamps: true }
