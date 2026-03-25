@@ -13,7 +13,6 @@ describe('EcoPoint Create Schema', () => {
     };
 
     const result = createEcopointSchema.safeParse(invalidPayload);
-    console.log(result);
     expect(result.success).toBe(false);
     expect(result.error.issues.some(issue => issue.message === 'Longitude must be between -180 and 180')).toBe(true);
   });
@@ -37,7 +36,7 @@ describe('EcoPoint Create Schema', () => {
 describe('EcoPoint Model', () => {
   it('should create a valid EcoPoint document', () => {
     const validEcoPoint = new EcoPoint({
-      name: 'EcoPoint North',
+      name: 'EcoPoint Centro',
       address: 'Beijodramo',
       coordinates: {
         type: 'Point',
