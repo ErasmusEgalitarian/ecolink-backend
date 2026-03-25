@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { sendResetEmail } = require('../services/emailService');
 
 /**
  * @description Registra um novo usuário
@@ -103,7 +104,96 @@ const login = async (req, res, next) => {
     }
 };
 
+/**
+ * @description Solicita redefinição de senha
+ * @route POST /api/auth/forgot-password
+ * @access Public
+ */
+const forgotPassword = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+
+        const user = await User.findOne({ email });
+
+        if (user) {
+            // Generate token (15 min)
+            const token = jwt.sign(
+                { id: user._id },
+                process.env.JWT_SECRET,
+                { expiresIn: '15m' }
+            );
+
+            // Save token and expiration
+            user.resetPasswordToken = token;
+            user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+
+            await user.save();
+
+            await sendResetEmail(email, token);
+        }
+
+        // Sempre retorna 200 (anti-enumeration)
+        res.status(200).json({
+            success: true,
+            message: 'If the email exists, a reset link has been sent'
+        });
+
+    } catch (err) {
+        console.error('Forgot password error:', err);
+        next(err);
+    }
+};
+
+/**
+ * @description Redefine a senha do usuário
+ * @route POST /api/auth/reset-password
+ * @access Public
+ */
+const resetPassword = async (req, res, next) => {
+    try {
+        const { token, password } = req.body;
+
+        const user = await User.findOne({ resetPasswordToken: token });
+
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: 'Token inválido ou expirado'
+            });
+        }
+
+        // Check expiration
+        if (user.resetPasswordExpires < Date.now()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Token inválido ou expirado'
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        user.password = hashedPassword;
+
+        // Invalidate token
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Password updated successfully'
+        });
+
+    } catch (err) {
+        console.error('Reset password error:', err);
+        next(err);
+    }
+};
+
 module.exports = {
     register,
-    login
+    login,
+    forgotPassword,
+    resetPassword
 };
