@@ -287,4 +287,4 @@ There are two tests for "roles", both test if the roles exists and if they are c
 
 # Next Steps
 
-Continue developing the backend, including additional routes like waste pickup APIs.
+Continue developing the backend, including additional routes like waste pickup APIs..
