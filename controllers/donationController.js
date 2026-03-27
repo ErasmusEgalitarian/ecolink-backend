@@ -35,6 +35,7 @@ const createDonation = async (req, res, next) => {
         const pickup = new Pickup({
             donationId: savedDonation._id,
             userId: req.user.id,
+            ecopointId,
         });
 
         const savedPickup = await pickup.save();

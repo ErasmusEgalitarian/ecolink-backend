@@ -66,6 +66,24 @@ npx nodemon server.js
 
 The backend will run on `http://192.168.0.168:5000`.
 
+## API Documentation (Swagger)
+
+Swagger UI is available only in development environment.
+
+1. Start the API with `NODE_ENV=development`.
+2. Open `http://localhost:5000/api/docs` in the browser.
+3. Click the `Authorize` button and provide a JWT in the format:
+
+```text
+Bearer <your_token>
+```
+
+OpenAPI JSON is available at `GET /api/docs.json` in development.
+
+### Notes about pending stories
+
+- `EcoPoints` and `Sessions/QR Code` endpoints are marked as pending in docs and depend on US-091 implementation.
+
 # Functionalities Implemented
 
 ## 1. Authentication System
@@ -287,4 +305,4 @@ There are two tests for "roles", both test if the roles exists and if they are c
 
 # Next Steps
 
-Continue developing the backend, including additional routes like waste pickup APIs.
+Continue developing the backend, including additional routes like waste pickup APIs..
