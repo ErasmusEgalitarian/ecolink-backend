@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { sendResetEmail } = require('../services/emailService');
+const { sendResetEmail } = require('../middlewares/emailService');
 
 /**
  * @description Registra um novo usuário
