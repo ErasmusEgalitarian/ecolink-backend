@@ -1,20 +1,20 @@
 const rateLimit = require('express-rate-limit');
 
 const commonConfig = {
-    windowMs: 15 * 60 * 1000, // 15 minutos
+    windowMs: 15 * 60 * 1000,
     message: { message: "Too many requests, please try again later" },
-    standardHeaders: true, // Retorna RateLimit-Limit, etc.
+    standardHeaders: true,
     legacyHeaders: false,
-    skip: () => process.env.NODE_ENV === 'test', // Desabilita em testes
+    skip: () => process.env.NODE_ENV === 'test',
 };
 
-// Limiter Global: 100 req / 15 min
+// Limiter Global
 const globalLimiter = rateLimit({
     ...commonConfig,
     max: 100,
 });
 
-// Limiter de Auth: 10 req / 15 min
+// Limiter de Auth
 const authLimiter = rateLimit({
     ...commonConfig,
     max: 10,

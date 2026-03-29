@@ -4,7 +4,6 @@ const { globalLimiter, authLimiter } = require('./middleware/rateLimiter');
 
 app.use(express.json());
 
-// Global limit
 app.use(globalLimiter);
 
 app.use('/api/auth', authLimiter);
