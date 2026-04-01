@@ -67,7 +67,10 @@ const UserSchema = new mongoose.Schema({
     },
     wasteSaved: { type: Number, default: 0 }, 
     carbonCredit: { type: Number, default: 0 }, 
-    totalPickups: { type: Number, default: 0 }
+    totalPickups: { type: Number, default: 0 },
+
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date }
 });
 
 UserSchema.index({ email: 1 }, { unique: true });

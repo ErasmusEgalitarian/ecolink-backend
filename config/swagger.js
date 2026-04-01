@@ -494,6 +494,99 @@ const options = {
           }
         }
       },
+            '/api/auth/forgot-password': {
+        post: {
+            tags: ['Auth'],
+            summary: 'Solicitar redefinicao de senha',
+            requestBody: {
+            required: true,
+            content: {
+                'application/json': {
+                schema: {
+                    type: 'object',
+                    properties: {
+                    email: {
+                        type: 'string',
+                        format: 'email',
+                        example: 'joao@ecolink.com'
+                    }
+                    },
+                    required: ['email']
+                }
+                }
+            }
+            },
+            responses: {
+            200: {
+                description: 'Sempre retorna sucesso (anti-enumeration)',
+                content: {
+                'application/json': {
+                    schema: { $ref: '#/components/schemas/GenericSuccessResponse' },
+                    example: {
+                    success: true,
+                    message: 'If the email exists, a reset link has been sent'
+                    }
+                }
+                }
+            },
+            500: { $ref: '#/components/responses/InternalServerError' }
+            }
+        }
+        },
+        '/api/auth/reset-password': {
+        post: {
+            tags: ['Auth'],
+            summary: 'Redefinir senha com token',
+            requestBody: {
+            required: true,
+            content: {
+                'application/json': {
+                schema: {
+                    type: 'object',
+                    properties: {
+                    token: {
+                        type: 'string',
+                        example: 'jwt_reset_token'
+                    },
+                    password: {
+                        type: 'string',
+                        example: 'NovaSenha@123'
+                    }
+                    },
+                    required: ['token', 'password']
+                }
+                }
+            }
+            },
+            responses: {
+            200: {
+                description: 'Senha atualizada com sucesso',
+                content: {
+                'application/json': {
+                    schema: { $ref: '#/components/schemas/GenericSuccessResponse' },
+                    example: {
+                    success: true,
+                    message: 'Password updated successfully'
+                    }
+                }
+                }
+            },
+            400: {
+                description: 'Token invalido ou expirado',
+                content: {
+                'application/json': {
+                    schema: { $ref: '#/components/schemas/ErrorResponse' },
+                    example: {
+                    success: false,
+                    message: 'Token inválido ou expirado'
+                    }
+                }
+                }
+            },
+            500: { $ref: '#/components/responses/InternalServerError' }
+            }
+        }
+        },
       '/api/donation': {
         post: {
           tags: ['Donations'],
