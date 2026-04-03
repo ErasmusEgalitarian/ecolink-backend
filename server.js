@@ -11,12 +11,16 @@ const swaggerSpec = require("./config/swagger");
 
 const corsOptions = require('./config/cors.config');
 
+const { globalLimiter, authLimiter } = require('./middlewares/rateLimiter'); 
+
+
 const uploadDir = path.join(__dirname, "uploads"); // -> create upload folder locally
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
 
 const app = express();
+app.use(globalLimiter);
 app.use(express.json());
 app.use(cors(corsOptions));
 
@@ -38,7 +42,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 const authRoutes = require("./routes/auth");
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authLimiter, authRoutes);
 
 const userRoutes = require("./routes/users");
 app.use("/api/users", userRoutes);
