@@ -1,6 +1,14 @@
-jest.mock('../models/User', () => ({
-    findOne: jest.fn()
-}));
+const mockSave = jest.fn();
+const mockUserConstructor = jest.fn(function (data) {
+    return {
+        ...data,
+        save: mockSave
+    };
+});
+
+mockUserConstructor.findOne = jest.fn();
+
+jest.mock('../models/User', () => mockUserConstructor);
 
 jest.mock('bcrypt');
 jest.mock('jsonwebtoken');
@@ -9,13 +17,13 @@ jest.mock('../middlewares/emailService', () => ({
     sendResetEmail: jest.fn()
 }));
 
-const { forgotPassword, resetPassword } = require('../controllers/authController');
+const { register, forgotPassword, resetPassword } = require('../controllers/authController');
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { sendResetEmail } = require('../middlewares/emailService');
 
-describe('Auth Controller - Password Reset', () => {
+describe('Auth Controller', () => {
 
     let req, res;
 
@@ -26,6 +34,58 @@ describe('Auth Controller - Password Reset', () => {
             json: jest.fn()
         };
         jest.clearAllMocks();
+    });
+
+    // ======================
+    // REGISTER
+    // ======================
+
+    it('should return 409 if email is already registered', async () => {
+        req.body = {
+            username: 'john_doe',
+            email: 'john@example.com',
+            password: 'SecurePass@123',
+            address: 'Rua Test, 123',
+            phone: '11987654321',
+            cpf: '52998224725'
+        };
+
+        User.findOne.mockResolvedValue({
+            email: 'john@example.com',
+            cpf: '11144477735'
+        });
+
+        await register(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(409);
+        expect(res.json).toHaveBeenCalledWith({
+            success: false,
+            message: 'Email already registered'
+        });
+    });
+
+    it('should return 409 if CPF is already registered', async () => {
+        req.body = {
+            username: 'john_doe',
+            email: 'john@example.com',
+            password: 'SecurePass@123',
+            address: 'Rua Test, 123',
+            phone: '11987654321',
+            cpf: '52998224725'
+        };
+
+        User.findOne.mockResolvedValue({
+            email: 'another@example.com',
+            cpf: '52998224725'
+        });
+
+        await register(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(409);
+        expect(res.json).toHaveBeenCalledWith({
+            success: false,
+            message: 'CPF already registered'
+        });
     });
 
     // ======================

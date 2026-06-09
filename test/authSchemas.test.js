@@ -28,7 +28,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '12345678901',
+                cpf: '52998224725',
                 phone: '11987654321'
             };
 
@@ -86,7 +86,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '12345678901',
+                cpf: '52998224725',
                 phone: '11987654321'
             };
 
@@ -116,7 +116,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '12345678901',
+                cpf: '52998224725',
                 phone: '11987654321'
             };
 
@@ -137,7 +137,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '12345678901',
+                cpf: '52998224725',
                 phone: '11987654321'
             };
 
@@ -158,7 +158,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-            cpf: '12345678901',
+            cpf: '52998224725',
             phone: '11987654321'
             };
 
@@ -190,7 +190,7 @@ describe('Auth Schema Validation', () => {
                 password: 'Pass@12',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-            cpf: '12345678901',
+            cpf: '52998224725',
             phone: '11987654321'
             };
 
@@ -220,7 +220,7 @@ describe('Auth Schema Validation', () => {
                 password: 'Pass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-            cpf: '12345678901',
+            cpf: '52998224725',
             phone: '11987654321'
             };
 
@@ -241,7 +241,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePassword@123456789',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '12345678901',
+                cpf: '52998224725',
                 phone: '11987654321'
             };
 
@@ -262,7 +262,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePassword@1234567890',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '12345678901',
+                cpf: '52998224725',
                 phone: '11987654321'
             };
 
@@ -292,7 +292,7 @@ describe('Auth Schema Validation', () => {
                 password: 'securepass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '12345678901',
+                cpf: '52998224725',
                 phone: '11987654321'
             };
 
@@ -322,7 +322,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SECUREPASS@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '12345678901',
+                cpf: '52998224725',
                 phone: '11987654321'
             };
 
@@ -352,7 +352,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass@',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '12345678901',
+                cpf: '52998224725',
                 phone: '11987654321'
             };
 
@@ -382,7 +382,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '12345678901',
+                cpf: '52998224725',
                 phone: '11987654321'
             };
 
@@ -414,7 +414,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '12345678901',
+                cpf: '52998224725',
                 phone: '11987654321'
             };
 
@@ -444,7 +444,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '12345678901',
+                cpf: '52998224725',
                 phone: '11987654321'
             };
 
@@ -483,7 +483,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass@123',
                 address: 'Rua',
                 roleId: '507f1f77bcf86cd799439011',
-            cpf: '12345678901',
+            cpf: '52998224725',
             phone: '11987654321'
             };
 
@@ -513,7 +513,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass@123',
                 address: 'Rua 1',
                 roleId: '507f1f77bcf86cd799439011',
-            cpf: '12345678901',
+            cpf: '52998224725',
             phone: '11987654321'
             };
 
@@ -565,7 +565,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '12345678901',
+                cpf: '52998224725',
                 phone: '11987654321'
             };
 
@@ -579,6 +579,36 @@ describe('Auth Schema Validation', () => {
             expect(res.status).not.toHaveBeenCalled();
         });
 
+        it('should reject CPF with invalid check digits', () => {
+            const invalidUser = {
+                username: 'john_doe',
+                email: 'john@example.com',
+                password: 'SecurePass@123',
+                address: 'Rua Test, 123',
+                roleId: '507f1f77bcf86cd799439011',
+                cpf: '12345678901',
+                phone: '11987654321'
+            };
+
+            const req = mockRequest(invalidUser);
+            const res = mockResponse();
+            const middleware = validate(registerSchema);
+
+            middleware(req, res, mockNext);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'Validation error',
+                errors: expect.arrayContaining([
+                    expect.objectContaining({
+                        field: 'cpf',
+                        message: 'Invalid CPF'
+                    })
+                ])
+            });
+            expect(mockNext).not.toHaveBeenCalled();
+        });
+
         it('should reject CPF with 12 digits (above maximum)', () => {
             const invalidUser = {
                 username: 'john_doe',
@@ -586,7 +616,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '123456789012'
+                cpf: '529982247252'
             };
 
             const req = mockRequest(invalidUser);
@@ -657,7 +687,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '12345678901',
+                cpf: '52998224725',
                 phone: '1198765432'
             };
 
@@ -678,7 +708,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '12345678901',
+                cpf: '52998224725',
                 phone: '11987654321'
             };
 
@@ -720,7 +750,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-            cpf: '12345678901',
+            cpf: '52998224725',
             phone: '11987654321'
             };
 
@@ -749,7 +779,7 @@ describe('Auth Schema Validation', () => {
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-            cpf: '12345678901',
+            cpf: '52998224725',
             phone: '11987654321'
             };
 
@@ -778,7 +808,7 @@ describe('Auth Schema Validation', () => {
                 email: 'john@example.com',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
-                cpf: '12345678901',
+                cpf: '52998224725',
                 phone: '11987654321'
             };
 

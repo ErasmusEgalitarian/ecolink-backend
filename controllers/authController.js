@@ -10,14 +10,18 @@ const { sendResetEmail } = require('../middlewares/emailService');
  */
 const register = async (req, res, next) => {
     try {
-        const { username, email, password, address, phone, cpf, roleId } = req.body;
+        const { username, email, password, address, phone, cpf } = req.body;
 
-        // Check if the user already exists
-        const existingUser = await User.findOne({ email });
+        // Check if the user already exists by unique fields
+        const existingUser = await User.findOne({
+            $or: [{ email }, { cpf }]
+        });
         if (existingUser) {
-            return res.status(400).json({ 
+            const duplicatedField = existingUser.email === email ? 'Email' : 'CPF';
+
+            return res.status(409).json({ 
                 success: false,
-                message: 'User already exists' 
+                message: `${duplicatedField} already registered`
             });
         }
 
@@ -31,8 +35,7 @@ const register = async (req, res, next) => {
             password: hashedPassword,
             address,
             phone,
-            cpf,
-            roleId
+            cpf
         });
         
         await newUser.save();
@@ -42,6 +45,18 @@ const register = async (req, res, next) => {
             message: 'User registered successfully' 
         });
     } catch (err) {
+        if (err.code === 11000) {
+            const duplicatedField = Object.keys(err.keyPattern || err.keyValue || {})[0] || 'field';
+            const duplicatedFieldLabel = duplicatedField === 'cpf'
+                ? 'CPF'
+                : duplicatedField.charAt(0).toUpperCase() + duplicatedField.slice(1);
+
+            return res.status(409).json({
+                success: false,
+                message: `${duplicatedFieldLabel} already registered`
+            });
+        }
+
         console.error('Register error:', err);
         next(err);
     }

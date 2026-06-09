@@ -90,7 +90,7 @@ const options = {
             email: { type: 'string', format: 'email', example: 'joao@ecolink.com' },
             address: { type: 'string', example: 'Rua A, 123' },
             phone: { type: 'string', example: '11999999999' },
-            cpf: { type: 'string', example: '12345678901' },
+            cpf: { type: 'string', example: '52998224725' },
             roleId: {
               oneOf: [
                 { $ref: '#/components/schemas/ObjectId' },
@@ -117,7 +117,7 @@ const options = {
             },
             address: { type: 'string', minLength: 5, example: 'Rua A, 123 - Centro' },
             phone: { type: 'string', example: '11999999999' },
-            cpf: { type: 'string', example: '12345678901' },
+            cpf: { type: 'string', example: '52998224725' },
             roleId: { $ref: '#/components/schemas/ObjectId' }
           },
           required: ['username', 'email', 'password', 'address', 'phone', 'cpf', 'roleId']

@@ -1,4 +1,5 @@
 const { z } = require('zod');
+const { isValidCPF } = require('../utils/cpfValidator');
 
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#._-]).+$/;
 const phoneRegex = /^\d{10}$|^\d{11}$/;
@@ -61,11 +62,9 @@ const registerSchema = z.object({
     cpf: z.string({
         required_error: 'CPF is required'
     })
-        .regex(cpfRegex, 'CPF must have exactly 11 digits'),
-    
-    roleId: z.string({
-        required_error: 'Role ID is required'
-    })
+        .trim()
+        .regex(cpfRegex, 'CPF must have exactly 11 digits')
+        .refine(isValidCPF, 'Invalid CPF')
 });
 
 const forgotPasswordSchema = z.object({
