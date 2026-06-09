@@ -43,7 +43,7 @@ describe('Auth Controller', () => {
     it('should return 409 if email is already registered', async () => {
         req.body = {
             username: 'john_doe',
-            email: 'john@example.com',
+            email: 'john@unb.aluno.br',
             password: 'SecurePass@123',
             address: 'Rua Test, 123',
             phone: '11987654321',
@@ -51,7 +51,7 @@ describe('Auth Controller', () => {
         };
 
         User.findOne.mockResolvedValue({
-            email: 'john@example.com',
+            email: 'john@unb.aluno.br',
             cpf: '11144477735'
         });
 
@@ -67,7 +67,7 @@ describe('Auth Controller', () => {
     it('should return 409 if CPF is already registered', async () => {
         req.body = {
             username: 'john_doe',
-            email: 'john@example.com',
+            email: 'john@unb.aluno.br',
             password: 'SecurePass@123',
             address: 'Rua Test, 123',
             phone: '11987654321',
@@ -75,7 +75,7 @@ describe('Auth Controller', () => {
         };
 
         User.findOne.mockResolvedValue({
-            email: 'another@example.com',
+            email: 'another@unb.aluno.br',
             cpf: '52998224725'
         });
 
@@ -93,7 +93,7 @@ describe('Auth Controller', () => {
     // ======================
 
     it('should return 200 even if user does not exist', async () => {
-        req.body.email = 'notfound@email.com';
+        req.body.email = 'notfound@unb.aluno.br';
 
         User.findOne.mockResolvedValue(null);
 
@@ -104,7 +104,7 @@ describe('Auth Controller', () => {
     });
 
     it('should generate token and send email if user exists', async () => {
-        req.body.email = 'test@email.com';
+        req.body.email = 'test@unb.aluno.br';
 
         const mockUser = {
             _id: '123',
@@ -126,7 +126,7 @@ describe('Auth Controller', () => {
         expect(mockUser.resetPasswordExpires).toBeDefined();
         expect(mockUser.save).toHaveBeenCalled();
 
-        expect(sendResetEmail).toHaveBeenCalledWith('test@email.com', 'mockToken');
+        expect(sendResetEmail).toHaveBeenCalledWith('test@unb.aluno.br', 'mockToken');
 
         expect(res.status).toHaveBeenCalledWith(200);
     });

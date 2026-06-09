@@ -44,7 +44,7 @@
       "url": "{{ base_url }}/api/auth/register",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"username\": \"admin\",\n  \"email\": \"admin@ecolink.com\",\n  \"password\": \"Admin@123\",\n  \"address\": \"Rua das Flores, 123 - Centro\",\n  \"phone\": \"11987654321\",\n  \"cpf\": \"12345678909\",\n  \"roleId\": \"{{ role_admin }}\"\n}"
+        "text": "{\n  \"username\": \"admin\",\n  \"email\": \"admin@unb.aluno.br\",\n  \"password\": \"Admin@123\",\n  \"address\": \"Rua das Flores, 123 - Centro\",\n  \"phone\": \"11987654321\",\n  \"cpf\": \"12345678909\",\n  \"roleId\": \"{{ role_admin }}\"\n}"
       },
       "headers": [
         {
@@ -62,7 +62,7 @@
       "url": "{{ base_url }}/api/auth/register",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"username\": \"editor1\",\n  \"email\": \"editor@ecolink.com\",\n  \"password\": \"Editor@123\",\n  \"address\": \"Avenida Paulista, 1000\",\n  \"phone\": \"11988887777\",\n  \"cpf\": \"11144477735\",\n  \"roleId\": \"{{ role_editor }}\"\n}"
+        "text": "{\n  \"username\": \"editor1\",\n  \"email\": \"editor@unb.aluno.br\",\n  \"password\": \"Editor@123\",\n  \"address\": \"Avenida Paulista, 1000\",\n  \"phone\": \"11988887777\",\n  \"cpf\": \"11144477735\",\n  \"roleId\": \"{{ role_editor }}\"\n}"
       },
       "headers": [
         {
@@ -80,7 +80,7 @@
       "url": "{{ base_url }}/api/auth/register",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"username\": \"viewer1\",\n  \"email\": \"viewer@ecolink.com\",\n  \"password\": \"Viewer@123\",\n  \"address\": \"Rua Augusta, 500\",\n  \"phone\": \"11977776666\",\n  \"cpf\": \"52998224725\",\n  \"roleId\": \"{{ role_viewer }}\"\n}"
+        "text": "{\n  \"username\": \"viewer1\",\n  \"email\": \"viewer@unb.aluno.br\",\n  \"password\": \"Viewer@123\",\n  \"address\": \"Rua Augusta, 500\",\n  \"phone\": \"11977776666\",\n  \"cpf\": \"52998224725\",\n  \"roleId\": \"{{ role_viewer }}\"\n}"
       },
       "headers": [
         {
@@ -98,7 +98,7 @@
       "url": "{{ base_url }}/api/auth/login",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"email\": \"admin@ecolink.com\",\n  \"password\": \"Admin@123\"\n}"
+        "text": "{\n  \"email\": \"admin@unb.aluno.br\",\n  \"password\": \"Admin@123\"\n}"
       },
       "headers": [
         {
@@ -116,7 +116,7 @@
       "url": "{{ base_url }}/api/auth/login",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"email\": \"editor@ecolink.com\",\n  \"password\": \"Editor@123\"\n}"
+        "text": "{\n  \"email\": \"editor@unb.aluno.br\",\n  \"password\": \"Editor@123\"\n}"
       },
       "headers": [
         {
@@ -134,7 +134,7 @@
       "url": "{{ base_url }}/api/auth/login",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"email\": \"viewer@ecolink.com\",\n  \"password\": \"Viewer@123\"\n}"
+        "text": "{\n  \"email\": \"viewer@unb.aluno.br\",\n  \"password\": \"Viewer@123\"\n}"
       },
       "headers": [
         {

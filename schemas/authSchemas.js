@@ -4,6 +4,16 @@ const { isValidCPF } = require('../utils/cpfValidator');
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#._-]).+$/;
 const phoneRegex = /^\d{10}$|^\d{11}$/;
 const cpfRegex = /^\d{11}$/;
+const unbAlunoEmailRegex = /^[a-z0-9._%+-]+@unb\.aluno\.br$/;
+const unbAlunoEmailMessage = 'Email must be from @unb.aluno.br domain';
+
+const unbAlunoEmailSchema = () => z.string({
+    required_error: 'Email is required'
+})
+    .trim()
+    .toLowerCase()
+    .email('Invalid email format')
+    .regex(unbAlunoEmailRegex, unbAlunoEmailMessage);
 
 /**
  * Add business rule check for password if password change is required
@@ -11,12 +21,7 @@ const cpfRegex = /^\d{11}$/;
  */
 
 const loginSchema = z.object({
-    email: z.string({
-        required_error: 'Email is required'
-    })
-    .email('Invalid email format')
-    .toLowerCase()
-    .trim(),
+    email: unbAlunoEmailSchema(),
     
     password: z.string({
         required_error: 'Password is required',
@@ -34,12 +39,7 @@ const registerSchema = z.object({
     .max(30, 'Username must be at most 30 characters long')
     .trim(),
     
-    email: z.string({
-        required_error: 'Email is required'
-    })
-    .email('Invalid email format')
-    .toLowerCase()
-    .trim(),
+    email: unbAlunoEmailSchema(),
     
     password: z.string({
         required_error: 'Password is required'
@@ -68,12 +68,7 @@ const registerSchema = z.object({
 });
 
 const forgotPasswordSchema = z.object({
-    email: z.string({
-        required_error: 'Email is required'
-    })
-    .email('Invalid email format')
-    .toLowerCase()
-    .trim()
+    email: unbAlunoEmailSchema()
 });
 
 const resetPasswordSchema = z.object({

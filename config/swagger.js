@@ -87,7 +87,7 @@ const options = {
           properties: {
             _id: { $ref: '#/components/schemas/ObjectId' },
             username: { type: 'string', example: 'joao.silva' },
-            email: { type: 'string', format: 'email', example: 'joao@ecolink.com' },
+            email: { type: 'string', format: 'email', example: 'joao@unb.aluno.br' },
             address: { type: 'string', example: 'Rua A, 123' },
             phone: { type: 'string', example: '11999999999' },
             cpf: { type: 'string', example: '52998224725' },
@@ -108,7 +108,7 @@ const options = {
           type: 'object',
           properties: {
             username: { type: 'string', minLength: 3, maxLength: 30, example: 'joao.silva' },
-            email: { type: 'string', format: 'email', example: 'joao@ecolink.com' },
+            email: { type: 'string', format: 'email', example: 'joao@unb.aluno.br' },
             password: {
               type: 'string',
               minLength: 8,
@@ -125,7 +125,7 @@ const options = {
         LoginRequest: {
           type: 'object',
           properties: {
-            email: { type: 'string', format: 'email', example: 'joao@ecolink.com' },
+            email: { type: 'string', format: 'email', example: 'joao@unb.aluno.br' },
             password: { type: 'string', example: 'EcoLink@123' }
           },
           required: ['email', 'password']
@@ -144,7 +144,7 @@ const options = {
               properties: {
                 id: { $ref: '#/components/schemas/ObjectId' },
                 username: { type: 'string', example: 'joao.silva' },
-                email: { type: 'string', format: 'email', example: 'joao@ecolink.com' },
+                email: { type: 'string', format: 'email', example: 'joao@unb.aluno.br' },
                 phone: { type: 'string', example: '11999999999' },
                 address: { type: 'string', example: 'Rua A, 123' }
               }
@@ -508,7 +508,7 @@ const options = {
                     email: {
                         type: 'string',
                         format: 'email',
-                        example: 'joao@ecolink.com'
+                        example: 'joao@unb.aluno.br'
                     }
                     },
                     required: ['email']
