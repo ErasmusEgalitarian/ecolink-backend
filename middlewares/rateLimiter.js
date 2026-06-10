@@ -39,7 +39,20 @@ const loginRateLimiter = rateLimit({
     )
 });
 
+const resendVerificationCodeRateLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 1,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipFailedRequests: true,
+    handler: createAuthRateLimitHandler(
+        'RESEND_VERIFICATION_CODE_RATE_LIMIT_EXCEEDED',
+        'Please wait before requesting another verification code.'
+    )
+});
+
 module.exports = {
     registerRateLimiter,
-    loginRateLimiter
+    loginRateLimiter,
+    resendVerificationCodeRateLimiter
 };

@@ -214,6 +214,10 @@ describe('Auth Controller', () => {
 
         const mockUser = {
             _id: 'user-id',
+            username: 'john_doe',
+            email: 'john@aluno.unb.br',
+            phone: '11987654321',
+            address: 'Rua Test, 123',
             emailVerified: false,
             save: jest.fn()
         };
@@ -227,16 +231,38 @@ describe('Auth Controller', () => {
             sort: jest.fn().mockResolvedValue(mockActivation)
         });
         bcrypt.compare.mockResolvedValue(true);
+        jwt.sign.mockReturnValue('mockAuthToken');
 
         await verifyEmail(req, res);
 
         expect(mockUser.emailVerified).toBe(true);
         expect(mockUser.save).toHaveBeenCalled();
         expect(UserActivation.deleteMany).toHaveBeenCalledWith({ userId: 'user-id' });
+        expect(User.updateOne).toHaveBeenCalledWith(
+            { _id: 'user-id' },
+            { $currentDate: { lastlogin: true } }
+        );
+        expect(jwt.sign).toHaveBeenCalledWith(
+            {
+                id: 'user-id',
+                username: 'john_doe',
+                email: 'john@aluno.unb.br'
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
             success: true,
-            message: 'Email verified successfully'
+            message: 'Email verified successfully',
+            token: 'mockAuthToken',
+            user: {
+                id: 'user-id',
+                username: 'john_doe',
+                email: 'john@aluno.unb.br',
+                phone: '11987654321',
+                address: 'Rua Test, 123'
+            }
         });
     });
 

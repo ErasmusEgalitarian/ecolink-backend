@@ -6,8 +6,33 @@ const UserActivation = require('../models/UserVerifications');
 const { sendResetEmail, sendVerificationEmail } = require('../middlewares/emailService');
 
 const EMAIL_VERIFICATION_EXPIRATION_MS = 10 * 60 * 1000;
+const RESEND_VERIFICATION_CODE_COOLDOWN_SECONDS = 60;
 
 const generateVerificationCode = () => crypto.randomInt(100000, 1000000).toString();
+
+const generateAuthToken = (user) => jwt.sign(
+    { id: user._id, username: user.username, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: '1d' }
+);
+
+const serializeAuthUser = (user) => ({
+    id: user._id,
+    username: user.username,
+    email: user.email,
+    phone: user.phone,
+    address: user.address
+});
+
+const getRetryAfterFromRateLimit = (req, fallbackSeconds) => {
+    const resetTime = req.rateLimit?.resetTime;
+
+    if (resetTime instanceof Date) {
+        return Math.max(1, Math.ceil((resetTime.getTime() - Date.now()) / 1000));
+    }
+
+    return fallbackSeconds;
+};
 
 const sendNewVerificationCode = async (user) => {
     const code = generateVerificationCode();
@@ -159,23 +184,12 @@ const login = async (req, res, next) => {
             { $currentDate: { lastlogin: true } }
         );
 
-        // Generate a JWT token
-        const token = jwt.sign(
-            { id: user._id, username: user.username, email: user.email },
-            process.env.JWT_SECRET,
-            { expiresIn: '1d' }
-        );
+        const token = generateAuthToken(user);
 
         res.status(200).json({ 
             success: true,
             token, 
-            user: { 
-                id: user._id, 
-                username: user.username, 
-                email: user.email, 
-                phone: user.phone, 
-                address: user.address 
-            } 
+            user: serializeAuthUser(user)
         });
     } catch (err) {
         console.error('Login error:', err);
@@ -234,9 +248,18 @@ const verifyEmail = async (req, res, next) => {
         await user.save();
         await UserActivation.deleteMany({ userId: user._id });
 
+        await User.updateOne(
+            { _id: user._id },
+            { $currentDate: { lastlogin: true } }
+        );
+
+        const token = generateAuthToken(user);
+
         res.status(200).json({
             success: true,
-            message: 'Email verified successfully'
+            message: 'Email verified successfully',
+            token,
+            user: serializeAuthUser(user)
         });
     } catch (err) {
         console.error('Verify email error:', err);
@@ -254,11 +277,17 @@ const resendVerificationCode = async (req, res, next) => {
         const { email } = req.body;
 
         const user = await User.findOne({ email });
+        const retryAfter = getRetryAfterFromRateLimit(
+            req,
+            RESEND_VERIFICATION_CODE_COOLDOWN_SECONDS
+        );
+
         if (!user) {
             return res.status(200).json({
                 success: true,
                 code: 'VERIFICATION_CODE_SENT',
-                message: 'If the email exists and is not verified, a verification code has been sent'
+                message: 'If the email exists and is not verified, a verification code has been sent',
+                retryAfter
             });
         }
 
@@ -275,7 +304,8 @@ const resendVerificationCode = async (req, res, next) => {
         res.status(200).json({
             success: true,
             code: 'VERIFICATION_CODE_SENT',
-            message: 'Verification code sent to email'
+            message: 'Verification code sent to email',
+            retryAfter
         });
     } catch (err) {
         console.error('Resend verification code error:', err);
