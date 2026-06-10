@@ -8,7 +8,7 @@ const isValidPhone = (phone) => {
 };
 
 const UserSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true },
+    username: { type: String, required: true},
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     address: { type: String },
@@ -40,11 +40,15 @@ const UserSchema = new mongoose.Schema({
     carbonCredit: { type: Number, default: 0 }, 
     totalPickups: { type: Number, default: 0 },
 
-    resetPasswordToken: { type: String },
-    resetPasswordExpires: { type: Date }
+    emailVerified: { type: Boolean, default: false }
 });
 
-UserSchema.index({ email: 1 }, { unique: true });
-UserSchema.index({ cpf: 1 }, { unique: true });
+UserSchema.index(
+    { createdAt: 1 },
+    {
+        expireAfterSeconds: 2 * 24 * 60 * 60,
+        partialFilterExpression: { emailVerified: false }
+    }
+);
 
 module.exports = mongoose.model('User', UserSchema, 'users');

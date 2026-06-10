@@ -1,7 +1,29 @@
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { sendResetEmail } = require('../middlewares/emailService');
+const UserActivation = require('../models/UserVerifications');
+const { sendResetEmail, sendVerificationEmail } = require('../middlewares/emailService');
+
+const EMAIL_VERIFICATION_EXPIRATION_MS = 10 * 60 * 1000;
+
+const generateVerificationCode = () => crypto.randomInt(100000, 1000000).toString();
+
+const sendNewVerificationCode = async (user) => {
+    const code = generateVerificationCode();
+    const activationCodeHash = await bcrypt.hash(code, 10);
+
+    user.emailVerified = false;
+    await user.save();
+
+    await UserActivation.deleteMany({ userId: user._id });
+    await UserActivation.create({
+        userId: user._id,
+        activationCodeHash
+    });
+
+    await sendVerificationEmail(user.email, code);
+};
 
 /**
  * @description Registra um novo usuário
@@ -12,16 +34,46 @@ const register = async (req, res, next) => {
     try {
         const { username, email, password, address, phone, cpf } = req.body;
 
-        // Check if the user already exists by unique fields
-        const existingUser = await User.findOne({
-            $or: [{ email }, { cpf }]
-        });
-        if (existingUser) {
-            const duplicatedField = existingUser.email === email ? 'Email' : 'CPF';
+        const existingUserByEmail = await User.findOne({ email });
+        if (existingUserByEmail) {
+            if (existingUserByEmail.emailVerified !== true) {
+                if (existingUserByEmail.cpf !== cpf) {
+                    const existingUserByCpf = await User.findOne({ cpf });
+
+                    if (existingUserByCpf) {
+                        return res.status(409).json({
+                            success: false,
+                            code: 'CPF_ALREADY_REGISTERED',
+                            field: 'cpf',
+                            message: 'CPF already registered'
+                        });
+                    }
+                }
+
+                await sendNewVerificationCode(existingUserByEmail);
+
+                return res.status(200).json({
+                    success: true,
+                    code: 'VERIFICATION_CODE_SENT',
+                    message: 'Verification code sent to email'
+                });
+            }
 
             return res.status(409).json({ 
                 success: false,
-                message: `${duplicatedField} already registered`
+                code: 'EMAIL_ALREADY_REGISTERED',
+                field: 'email',
+                message: 'Email already registered'
+            });
+        }
+
+        const existingUserByCpf = await User.findOne({ cpf });
+        if (existingUserByCpf) {
+            return res.status(409).json({
+                success: false,
+                code: 'CPF_ALREADY_REGISTERED',
+                field: 'cpf',
+                message: 'CPF already registered'
             });
         }
 
@@ -35,14 +87,16 @@ const register = async (req, res, next) => {
             password: hashedPassword,
             address,
             phone,
-            cpf
+            cpf,
+            emailVerified: false
         });
         
-        await newUser.save();
+        await sendNewVerificationCode(newUser);
 
         res.status(201).json({ 
             success: true,
-            message: 'User registered successfully' 
+            code: 'VERIFICATION_CODE_SENT',
+            message: 'User registered successfully. Verification code sent to email' 
         });
     } catch (err) {
         if (err.code === 11000) {
@@ -53,6 +107,8 @@ const register = async (req, res, next) => {
 
             return res.status(409).json({
                 success: false,
+                code: `${duplicatedField.toUpperCase()}_ALREADY_REGISTERED`,
+                field: duplicatedField,
                 message: `${duplicatedFieldLabel} already registered`
             });
         }
@@ -74,9 +130,9 @@ const login = async (req, res, next) => {
         // Find the user
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(404).json({ 
+            return res.status(401).json({ 
                 success: false,
-                message: 'User not found' 
+                message: 'Invalid credentials' 
             });
         }
 
@@ -86,6 +142,14 @@ const login = async (req, res, next) => {
             return res.status(401).json({ 
                 success: false,
                 message: 'Invalid credentials' 
+            });
+        }
+
+        if (user.emailVerified !== true) {
+            return res.status(403).json({
+                success: false,
+                code: 'EMAIL_UNVERIFIED',
+                message: 'Email not verified'
             });
         }
 
@@ -115,6 +179,106 @@ const login = async (req, res, next) => {
         });
     } catch (err) {
         console.error('Login error:', err);
+        next(err);
+    }
+};
+
+/**
+ * @description Verifica o email do usuário com código OTP
+ * @route POST /api/auth/verify-email
+ * @access Public
+ */
+const verifyEmail = async (req, res, next) => {
+    try {
+        const { email, code } = req.body;
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                code: 'INVALID_VERIFICATION_CODE',
+                message: 'Invalid or expired verification code'
+            });
+        }
+
+        if (user.emailVerified === true) {
+            return res.status(409).json({
+                success: false,
+                code: 'EMAIL_ALREADY_VERIFIED',
+                message: 'Email already verified'
+            });
+        }
+
+        const activation = await UserActivation.findOne({ userId: user._id }).sort({ createdAt: -1 });
+
+        if (!activation
+            || activation.createdAt.getTime() + EMAIL_VERIFICATION_EXPIRATION_MS < Date.now()) {
+            return res.status(400).json({
+                success: false,
+                code: 'EMAIL_VERIFICATION_EXPIRED',
+                message: 'Verification code expired'
+            });
+        }
+
+        const isMatch = await bcrypt.compare(code, activation.activationCodeHash);
+        if (!isMatch) {
+            return res.status(400).json({
+                success: false,
+                code: 'INVALID_VERIFICATION_CODE',
+                message: 'Invalid verification code'
+            });
+        }
+
+        user.emailVerified = true;
+
+        await user.save();
+        await UserActivation.deleteMany({ userId: user._id });
+
+        res.status(200).json({
+            success: true,
+            message: 'Email verified successfully'
+        });
+    } catch (err) {
+        console.error('Verify email error:', err);
+        next(err);
+    }
+};
+
+/**
+ * @description Reenvia o código de verificação de email
+ * @route POST /api/auth/resend-verification-code
+ * @access Public
+ */
+const resendVerificationCode = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(200).json({
+                success: true,
+                code: 'VERIFICATION_CODE_SENT',
+                message: 'If the email exists and is not verified, a verification code has been sent'
+            });
+        }
+
+        if (user.emailVerified === true) {
+            return res.status(409).json({
+                success: false,
+                code: 'EMAIL_ALREADY_VERIFIED',
+                message: 'Email already verified'
+            });
+        }
+
+        await sendNewVerificationCode(user);
+
+        res.status(200).json({
+            success: true,
+            code: 'VERIFICATION_CODE_SENT',
+            message: 'Verification code sent to email'
+        });
+    } catch (err) {
+        console.error('Resend verification code error:', err);
         next(err);
     }
 };
@@ -210,5 +374,7 @@ module.exports = {
     register,
     login,
     forgotPassword,
+    verifyEmail,
+    resendVerificationCode,
     resetPassword
 };

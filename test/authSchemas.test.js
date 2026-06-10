@@ -1,5 +1,5 @@
 const validate = require('../middlewares/validate');
-const { loginSchema, registerSchema } = require('../schemas/authSchemas');
+const { loginSchema, registerSchema, verifyEmailSchema } = require('../schemas/authSchemas');
 
 // Mock Express request, response, and next
 const mockRequest = (body = {}) => ({
@@ -24,7 +24,7 @@ describe('Auth Schema Validation', () => {
         it('should successfully validate valid registration data with all fields', () => {
             const validUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -46,7 +46,7 @@ describe('Auth Schema Validation', () => {
     describe('Login Schema - Success Cases', () => {
         it('should successfully validate valid login credentials', () => {
             const validLogin = {
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123'
             };
 
@@ -62,7 +62,7 @@ describe('Auth Schema Validation', () => {
 
         it('should transform email to lowercase', () => {
             const validLogin = {
-                email: 'JOHN@UNB.ALUNO.BR',
+                email: 'JOHN@aluno.unb.br',
                 password: 'SecurePass@123'
             };
 
@@ -72,8 +72,51 @@ describe('Auth Schema Validation', () => {
 
             middleware(req, res, mockNext);
 
-            expect(req.body.email).toBe('john@unb.aluno.br');
+            expect(req.body.email).toBe('john@aluno.unb.br');
             expect(mockNext).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('Verify Email Schema', () => {
+        it('should accept a valid 6 digit verification code', () => {
+            const validPayload = {
+                email: 'john@aluno.unb.br',
+                code: '123456'
+            };
+
+            const req = mockRequest(validPayload);
+            const res = mockResponse();
+            const middleware = validate(verifyEmailSchema);
+
+            middleware(req, res, mockNext);
+
+            expect(mockNext).toHaveBeenCalledTimes(1);
+            expect(res.status).not.toHaveBeenCalled();
+        });
+
+        it('should reject verification code with less than 6 digits', () => {
+            const invalidPayload = {
+                email: 'john@aluno.unb.br',
+                code: '12345'
+            };
+
+            const req = mockRequest(invalidPayload);
+            const res = mockResponse();
+            const middleware = validate(verifyEmailSchema);
+
+            middleware(req, res, mockNext);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'Validation error',
+                errors: expect.arrayContaining([
+                    expect.objectContaining({
+                        field: 'code',
+                        message: 'Verification code must have exactly 6 digits'
+                    })
+                ])
+            });
+            expect(mockNext).not.toHaveBeenCalled();
         });
     });
 
@@ -82,7 +125,7 @@ describe('Auth Schema Validation', () => {
         it('should reject username with 2 characters (below minimum)', () => {
             const invalidUser = {
                 username: 'ab',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -112,7 +155,7 @@ describe('Auth Schema Validation', () => {
         it('should accept username with exactly 3 characters (minimum boundary)', () => {
             const validUser = {
                 username: 'abc',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -133,7 +176,7 @@ describe('Auth Schema Validation', () => {
         it('should accept username with exactly 30 characters (maximum boundary)', () => {
             const validUser = {
                 username: 'a'.repeat(30),
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -154,7 +197,7 @@ describe('Auth Schema Validation', () => {
         it('should reject username with 31 characters (above maximum)', () => {
             const invalidUser = {
                 username: 'a'.repeat(31),
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -186,7 +229,7 @@ describe('Auth Schema Validation', () => {
         it('should reject password with 7 characters (below minimum)', () => {
             const invalidUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'Pass@12',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -216,7 +259,7 @@ describe('Auth Schema Validation', () => {
         it('should accept password with exactly 8 characters (minimum boundary)', () => {
             const validUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'Pass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -237,7 +280,7 @@ describe('Auth Schema Validation', () => {
         it('should accept password with exactly 24 characters (maximum boundary)', () => {
             const validUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePassword@123456789',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -258,7 +301,7 @@ describe('Auth Schema Validation', () => {
         it('should reject password with 25 characters (above maximum)', () => {
             const invalidUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePassword@1234567890',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -288,7 +331,7 @@ describe('Auth Schema Validation', () => {
         it('should reject password without uppercase letter', () => {
             const invalidUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'securepass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -318,7 +361,7 @@ describe('Auth Schema Validation', () => {
         it('should reject password without lowercase letter', () => {
             const invalidUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SECUREPASS@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -348,7 +391,7 @@ describe('Auth Schema Validation', () => {
         it('should reject password without number', () => {
             const invalidUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -378,7 +421,7 @@ describe('Auth Schema Validation', () => {
         it('should reject password without special character', () => {
             const invalidUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -458,7 +501,7 @@ describe('Auth Schema Validation', () => {
             expect(mockNext).not.toHaveBeenCalled();
         });
 
-        it('should reject email outside @unb.aluno.br domain', () => {
+        it('should reject email outside @aluno.unb.br domain', () => {
             const invalidUser = {
                 username: 'john_doe',
                 email: 'john@gmail.com',
@@ -481,7 +524,7 @@ describe('Auth Schema Validation', () => {
                 errors: expect.arrayContaining([
                     expect.objectContaining({
                         field: 'email',
-                        message: 'Email must be from @unb.aluno.br domain'
+                        message: 'Email must be from @aluno.unb.br domain'
                     })
                 ])
             });
@@ -490,7 +533,7 @@ describe('Auth Schema Validation', () => {
 
         it('should transform email to lowercase for login', () => {
             const validLogin = {
-                email: 'JOHN@UNB.ALUNO.BR',
+                email: 'JOHN@aluno.unb.br',
                 password: 'anypassword'
             };
 
@@ -500,7 +543,7 @@ describe('Auth Schema Validation', () => {
 
             middleware(req, res, mockNext);
 
-            expect(req.body.email).toBe('john@unb.aluno.br');
+            expect(req.body.email).toBe('john@aluno.unb.br');
             expect(mockNext).toHaveBeenCalledTimes(1);
         });
     });
@@ -509,7 +552,7 @@ describe('Auth Schema Validation', () => {
         it('should reject address with 4 characters (below minimum)', () => {
             const invalidUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua',
                 roleId: '507f1f77bcf86cd799439011',
@@ -539,7 +582,7 @@ describe('Auth Schema Validation', () => {
         it('should accept address with exactly 5 characters (minimum boundary)', () => {
             const validUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua 1',
                 roleId: '507f1f77bcf86cd799439011',
@@ -562,7 +605,7 @@ describe('Auth Schema Validation', () => {
         it('should reject CPF with 10 digits (below minimum)', () => {
             const invalidUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -591,7 +634,7 @@ describe('Auth Schema Validation', () => {
         it('should accept CPF with exactly 11 digits', () => {
             const validUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -612,7 +655,7 @@ describe('Auth Schema Validation', () => {
         it('should reject CPF with invalid check digits', () => {
             const invalidUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -642,7 +685,7 @@ describe('Auth Schema Validation', () => {
         it('should reject CPF with 12 digits (above maximum)', () => {
             const invalidUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -662,7 +705,7 @@ describe('Auth Schema Validation', () => {
         it('should reject CPF with non-numeric characters', () => {
             const invalidUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -684,7 +727,7 @@ describe('Auth Schema Validation', () => {
         it('should reject phone with 9 digits (below minimum)', () => {
             const invalidUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -713,7 +756,7 @@ describe('Auth Schema Validation', () => {
         it('should accept phone with exactly 10 digits', () => {
             const validUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -734,7 +777,7 @@ describe('Auth Schema Validation', () => {
         it('should accept phone with exactly 11 digits', () => {
             const validUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -755,7 +798,7 @@ describe('Auth Schema Validation', () => {
         it('should reject phone with 12 digits (above maximum)', () => {
             const invalidUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -776,7 +819,7 @@ describe('Auth Schema Validation', () => {
     describe('BVA - Required Fields', () => {
         it('should reject when username is missing', () => {
             const invalidUser = {
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 password: 'SecurePass@123',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
@@ -835,7 +878,7 @@ describe('Auth Schema Validation', () => {
         it('should reject when password is missing', () => {
             const invalidUser = {
                 username: 'john_doe',
-                email: 'john@unb.aluno.br',
+                email: 'john@aluno.unb.br',
                 address: 'Rua Test, 123',
                 roleId: '507f1f77bcf86cd799439011',
                 cpf: '52998224725',
@@ -887,7 +930,7 @@ describe('Auth Schema Validation', () => {
 
         it('should reject login when password is missing', () => {
             const invalidLogin = {
-                email: 'john@unb.aluno.br'
+                email: 'john@aluno.unb.br'
             };
 
             const req = mockRequest(invalidLogin);
