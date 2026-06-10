@@ -98,7 +98,7 @@ We implemented user registration and login functionality with JWT authentication
   ```json
   {
     "username": "Admin",
-    "email": "admin@unb.aluno.br",
+    "email": "admin@aluno.unb.br",
     "password": "password123",
     "phone": "9283372629",
     "cpf": "12466748982",
@@ -118,7 +118,7 @@ We implemented user registration and login functionality with JWT authentication
   Payload:
   ```json
   {
-    "email": "admin@unb.aluno.br",
+    "email": "admin@aluno.unb.br",
     "password": "password123"
   }
   ```
@@ -206,7 +206,7 @@ We implemented middleware to secure protected routes using JWT authentication.
   {
     "id": "user_id_here",
     "username": "testuser",
-    "email": "test@unb.aluno.br"
+    "email": "test@aluno.unb.br"
   }
   ```
 

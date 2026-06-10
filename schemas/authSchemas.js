@@ -4,8 +4,9 @@ const { isValidCPF } = require('../utils/cpfValidator');
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#._-]).+$/;
 const phoneRegex = /^\d{10}$|^\d{11}$/;
 const cpfRegex = /^\d{11}$/;
-const unbAlunoEmailRegex = /^[a-z0-9._%+-]+@unb\.aluno\.br$/;
-const unbAlunoEmailMessage = 'Email must be from @unb.aluno.br domain';
+const unbAlunoEmailRegex = /^[a-z0-9._%+-]+@aluno\.unb\.br$/;
+const unbAlunoEmailMessage = 'Email must be from @aluno.unb.br domain';
+const verificationCodeRegex = /^\d{6}$/;
 
 const unbAlunoEmailSchema = () => z.string({
     required_error: 'Email is required'
@@ -71,6 +72,20 @@ const forgotPasswordSchema = z.object({
     email: unbAlunoEmailSchema()
 });
 
+const verifyEmailSchema = z.object({
+    email: unbAlunoEmailSchema(),
+
+    code: z.string({
+        required_error: 'Verification code is required',
+        invalid_type_error: 'Verification code must be a string'
+    })
+        .regex(verificationCodeRegex, 'Verification code must have exactly 6 digits')
+});
+
+const resendVerificationCodeSchema = z.object({
+    email: unbAlunoEmailSchema()
+});
+
 const resetPasswordSchema = z.object({
     token: z.string({
         required_error: 'Token is required'
@@ -91,5 +106,7 @@ module.exports = {
     loginSchema,
     registerSchema,
     forgotPasswordSchema,
+    verifyEmailSchema,
+    resendVerificationCodeSchema,
     resetPasswordSchema
 };
