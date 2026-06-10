@@ -1,7 +1,11 @@
 const rateLimit = require('express-rate-limit');
 
 const createAuthRateLimitHandler = (code, message) => (req, res, next, options) => {
-    const retryAfter = Math.ceil(options.windowMs / 1000);
+    const resetTime = req.rateLimit?.resetTime;
+    const retryAfterHeader = Number(res.getHeader('Retry-After'));
+    const retryAfter = resetTime instanceof Date
+        ? Math.max(1, Math.ceil((resetTime.getTime() - Date.now()) / 1000))
+        : retryAfterHeader || Math.ceil(options.windowMs / 1000);
 
     return res.status(options.statusCode).json({
         success: false,
