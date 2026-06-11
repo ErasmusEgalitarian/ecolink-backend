@@ -29,6 +29,22 @@ const sendResetEmail = async (to, token) => {
     });
 };
 
+const sendVerificationEmail = async (to, code) => {
+    await transporter.sendMail({
+        from: `"Support" <${process.env.SMTP_USER}>`,
+        to,
+        subject: 'Email Verification',
+        html: `
+            <h2>Email Verification</h2>
+            <p>Use the code below to verify your EcoLink account:</p>
+            <h1>${code}</h1>
+            <p>This code expires in 10 minutes.</p>
+            <p>If you did not request this code, you can ignore this email.</p>
+        `
+    });
+};
+
 module.exports = {
-    sendResetEmail
+    sendResetEmail,
+    sendVerificationEmail
 };

@@ -1,8 +1,20 @@
 const { z } = require('zod');
+const { isValidCPF } = require('../utils/cpfValidator');
 
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#._-]).+$/;
 const phoneRegex = /^\d{10}$|^\d{11}$/;
 const cpfRegex = /^\d{11}$/;
+const unbAlunoEmailRegex = /^[a-z0-9._%+-]+@aluno\.unb\.br$/;
+const unbAlunoEmailMessage = 'Email must be from @aluno.unb.br domain';
+const verificationCodeRegex = /^\d{6}$/;
+
+const unbAlunoEmailSchema = () => z.string({
+    required_error: 'Email is required'
+})
+    .trim()
+    .toLowerCase()
+    .email('Invalid email format')
+    .regex(unbAlunoEmailRegex, unbAlunoEmailMessage);
 
 /**
  * Add business rule check for password if password change is required
@@ -10,12 +22,7 @@ const cpfRegex = /^\d{11}$/;
  */
 
 const loginSchema = z.object({
-    email: z.string({
-        required_error: 'Email is required'
-    })
-    .email('Invalid email format')
-    .toLowerCase()
-    .trim(),
+    email: unbAlunoEmailSchema(),
     
     password: z.string({
         required_error: 'Password is required',
@@ -33,12 +40,7 @@ const registerSchema = z.object({
     .max(30, 'Username must be at most 30 characters long')
     .trim(),
     
-    email: z.string({
-        required_error: 'Email is required'
-    })
-    .email('Invalid email format')
-    .toLowerCase()
-    .trim(),
+    email: unbAlunoEmailSchema(),
     
     password: z.string({
         required_error: 'Password is required'
@@ -61,20 +63,27 @@ const registerSchema = z.object({
     cpf: z.string({
         required_error: 'CPF is required'
     })
-        .regex(cpfRegex, 'CPF must have exactly 11 digits'),
-    
-    roleId: z.string({
-        required_error: 'Role ID is required'
-    })
+        .trim()
+        .regex(cpfRegex, 'CPF must have exactly 11 digits')
+        .refine(isValidCPF, 'Invalid CPF')
 });
 
 const forgotPasswordSchema = z.object({
-    email: z.string({
-        required_error: 'Email is required'
+    email: unbAlunoEmailSchema()
+});
+
+const verifyEmailSchema = z.object({
+    email: unbAlunoEmailSchema(),
+
+    code: z.string({
+        required_error: 'Verification code is required',
+        invalid_type_error: 'Verification code must be a string'
     })
-    .email('Invalid email format')
-    .toLowerCase()
-    .trim()
+        .regex(verificationCodeRegex, 'Verification code must have exactly 6 digits')
+});
+
+const resendVerificationCodeSchema = z.object({
+    email: unbAlunoEmailSchema()
 });
 
 const resetPasswordSchema = z.object({
@@ -97,5 +106,7 @@ module.exports = {
     loginSchema,
     registerSchema,
     forgotPasswordSchema,
+    verifyEmailSchema,
+    resendVerificationCodeSchema,
     resetPasswordSchema
 };

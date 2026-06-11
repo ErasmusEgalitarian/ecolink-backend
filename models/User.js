@@ -1,35 +1,5 @@
 const mongoose = require('mongoose');
-const { LanguageServiceMode } = require('typescript');
-
-// Utility functions for validation
-const isValidCPF = (cpf) => {
-    // Basic validation: CPF must be 11 digits
-    const regex = /^\d{11}$/;
-    if (!regex.test(cpf)) return false;
-
-    // Check if all digits are the same (invalid CPF)
-    if (/^(\d)\1{10}$/.test(cpf)) return false;
-
-    // Validate first check digit
-    let sum = 0;
-    for (let i = 0; i < 9; i++) {
-        sum += parseInt(cpf.charAt(i)) * (10 - i);
-    }
-    let checkDigit = 11 - (sum % 11);
-    if (checkDigit >= 10) checkDigit = 0;
-    if (checkDigit !== parseInt(cpf.charAt(9))) return false;
-
-    // Validate second check digit
-    sum = 0;
-    for (let i = 0; i < 10; i++) {
-        sum += parseInt(cpf.charAt(i)) * (11 - i);
-    }
-    checkDigit = 11 - (sum % 11);
-    if (checkDigit >= 10) checkDigit = 0;
-    if (checkDigit !== parseInt(cpf.charAt(10))) return false;
-
-    return true;
-};
+const { isValidCPF } = require('../utils/cpfValidator');
 
 const isValidPhone = (phone) => {
     if (!phone) return true;
@@ -38,7 +8,7 @@ const isValidPhone = (phone) => {
 };
 
 const UserSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true },
+    username: { type: String, required: true},
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     address: { type: String },
@@ -52,9 +22,10 @@ const UserSchema = new mongoose.Schema({
     cpf: {
         type: String,
         required: true,
+        unique: true,
         validate: {
             validator: function (v) {
-                return v === null || isValidCPF(v);
+                return isValidCPF(v);
             },
             message: 'Invalid CPF format',
         },
@@ -69,10 +40,15 @@ const UserSchema = new mongoose.Schema({
     carbonCredit: { type: Number, default: 0 }, 
     totalPickups: { type: Number, default: 0 },
 
-    resetPasswordToken: { type: String },
-    resetPasswordExpires: { type: Date }
+    emailVerified: { type: Boolean, default: false }
 });
 
-UserSchema.index({ email: 1 }, { unique: true });
+UserSchema.index(
+    { createdAt: 1 },
+    {
+        expireAfterSeconds: 2 * 24 * 60 * 60,
+        partialFilterExpression: { emailVerified: false }
+    }
+);
 
 module.exports = mongoose.model('User', UserSchema, 'users');

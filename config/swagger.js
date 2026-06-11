@@ -87,10 +87,10 @@ const options = {
           properties: {
             _id: { $ref: '#/components/schemas/ObjectId' },
             username: { type: 'string', example: 'joao.silva' },
-            email: { type: 'string', format: 'email', example: 'joao@ecolink.com' },
+            email: { type: 'string', format: 'email', example: 'joao@aluno.unb.br' },
             address: { type: 'string', example: 'Rua A, 123' },
             phone: { type: 'string', example: '11999999999' },
-            cpf: { type: 'string', example: '12345678901' },
+            cpf: { type: 'string', example: '52998224725' },
             roleId: {
               oneOf: [
                 { $ref: '#/components/schemas/ObjectId' },
@@ -108,7 +108,7 @@ const options = {
           type: 'object',
           properties: {
             username: { type: 'string', minLength: 3, maxLength: 30, example: 'joao.silva' },
-            email: { type: 'string', format: 'email', example: 'joao@ecolink.com' },
+            email: { type: 'string', format: 'email', example: 'joao@aluno.unb.br' },
             password: {
               type: 'string',
               minLength: 8,
@@ -117,7 +117,7 @@ const options = {
             },
             address: { type: 'string', minLength: 5, example: 'Rua A, 123 - Centro' },
             phone: { type: 'string', example: '11999999999' },
-            cpf: { type: 'string', example: '12345678901' },
+            cpf: { type: 'string', example: '52998224725' },
             roleId: { $ref: '#/components/schemas/ObjectId' }
           },
           required: ['username', 'email', 'password', 'address', 'phone', 'cpf', 'roleId']
@@ -125,7 +125,7 @@ const options = {
         LoginRequest: {
           type: 'object',
           properties: {
-            email: { type: 'string', format: 'email', example: 'joao@ecolink.com' },
+            email: { type: 'string', format: 'email', example: 'joao@aluno.unb.br' },
             password: { type: 'string', example: 'EcoLink@123' }
           },
           required: ['email', 'password']
@@ -144,7 +144,7 @@ const options = {
               properties: {
                 id: { $ref: '#/components/schemas/ObjectId' },
                 username: { type: 'string', example: 'joao.silva' },
-                email: { type: 'string', format: 'email', example: 'joao@ecolink.com' },
+                email: { type: 'string', format: 'email', example: 'joao@aluno.unb.br' },
                 phone: { type: 'string', example: '11999999999' },
                 address: { type: 'string', example: 'Rua A, 123' }
               }
@@ -508,7 +508,7 @@ const options = {
                     email: {
                         type: 'string',
                         format: 'email',
-                        example: 'joao@ecolink.com'
+                        example: 'joao@aluno.unb.br'
                     }
                     },
                     required: ['email']
