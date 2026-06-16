@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const validate = require('../middlewares/validate');
 const verifyToken = require('../middlewares/authMiddleware');
+const { authenticatedUserRateLimiter } = require('../middlewares/rateLimiter');
 const { updatePickupStatusSchema, acceptPickupSchema } = require('../schemas/pickupSchemas');
 const {
     getAllPickups,
@@ -16,20 +17,22 @@ const {
     deletePickup
 } = require('../controllers/pickupController');
 
+const authenticated = [verifyToken, authenticatedUserRateLimiter];
+
 // ==================== READ ====================
-router.get('/', verifyToken, getAllPickups);
-router.get('/my', verifyToken, getMyPickups);
-router.get('/accepted', verifyToken, getAcceptedPickups);
-router.get('/pending', verifyToken, getPendingPickups);
-router.get('/:id', verifyToken, getPickupById);
+router.get('/', authenticated, getAllPickups);
+router.get('/my', authenticated, getMyPickups);
+router.get('/accepted', authenticated, getAcceptedPickups);
+router.get('/pending', authenticated, getPendingPickups);
+router.get('/:id', authenticated, getPickupById);
 
 // ==================== UPDATE ====================
-router.put('/:id/accept', verifyToken, validate(acceptPickupSchema), acceptPickup);
-router.put('/:id/complete', verifyToken, completePickup);
-router.put('/:id/cancel', verifyToken, cancelPickup);
-router.put('/:id/status', verifyToken, validate(updatePickupStatusSchema), updatePickupStatus);
+router.put('/:id/accept', authenticated, validate(acceptPickupSchema), acceptPickup);
+router.put('/:id/complete', authenticated, completePickup);
+router.put('/:id/cancel', authenticated, cancelPickup);
+router.put('/:id/status', authenticated, validate(updatePickupStatusSchema), updatePickupStatus);
 
 // ==================== DELETE ====================
-router.delete('/:id', verifyToken, deletePickup);
+router.delete('/:id', authenticated, deletePickup);
 
 module.exports = router;

@@ -3,8 +3,16 @@ const router = express.Router();
 const validate = require('../middlewares/validate');
 const {
     registerRateLimiter,
+    registerEmailRateLimiter,
     loginRateLimiter,
-    resendVerificationCodeRateLimiter
+    loginEmailRateLimiter,
+    forgotPasswordRateLimiter,
+    forgotPasswordEmailRateLimiter,
+    verifyEmailRateLimiter,
+    resendVerificationCodeRateLimiter,
+    resendVerificationCodeEmailRateLimiter,
+    resetPasswordRateLimiter,
+    resetPasswordTokenRateLimiter
 } = require('../middlewares/rateLimiter');
 const {
     loginSchema,
@@ -24,26 +32,56 @@ const {
 } = require('../controllers/authController');
 
 // Register
-router.post('/register', registerRateLimiter, validate(registerSchema), register);
+router.post(
+    '/register',
+    registerRateLimiter,
+    validate(registerSchema),
+    registerEmailRateLimiter,
+    register
+);
 
 // Login
-router.post('/login', loginRateLimiter, validate(loginSchema), login);
+router.post(
+    '/login',
+    loginRateLimiter,
+    validate(loginSchema),
+    loginEmailRateLimiter,
+    login
+);
 
 // Forgot Password
-router.post('/forgot-password', validate(forgotPasswordSchema), forgotPassword);
+router.post(
+    '/forgot-password',
+    forgotPasswordRateLimiter,
+    validate(forgotPasswordSchema),
+    forgotPasswordEmailRateLimiter,
+    forgotPassword
+);
 
 // Verify Email
-router.post('/verify-email', validate(verifyEmailSchema), verifyEmail);
+router.post(
+    '/verify-email',
+    validate(verifyEmailSchema),
+    verifyEmailRateLimiter,
+    verifyEmail
+);
 
 // Resend Verification Code
 router.post(
     '/resend-verification-code',
     resendVerificationCodeRateLimiter,
     validate(resendVerificationCodeSchema),
+    resendVerificationCodeEmailRateLimiter,
     resendVerificationCode
 );
 
 // Reset Password
-router.post('/reset-password', validate(resetPasswordSchema), resetPassword);
+router.post(
+    '/reset-password',
+    resetPasswordRateLimiter,
+    validate(resetPasswordSchema),
+    resetPasswordTokenRateLimiter,
+    resetPassword
+);
 
 module.exports = router;
