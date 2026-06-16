@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const validate = require('../middlewares/validate');
 const verifyToken = require('../middlewares/authMiddleware');
+const { authenticatedUserRateLimiter } = require('../middlewares/rateLimiter');
 const { createDonationSchema, updateDonationSchema } = require('../schemas/donationSchemas');
 const {
     createDonation,
@@ -12,18 +13,20 @@ const {
     deleteDonation
 } = require('../controllers/donationController');
 
+const authenticated = [verifyToken, authenticatedUserRateLimiter];
+
 // ==================== CREATE ====================
-router.post('/', verifyToken, validate(createDonationSchema), createDonation);
+router.post('/', authenticated, validate(createDonationSchema), createDonation);
 
 // ==================== READ ====================
-router.get('/', verifyToken, getAllDonations);
-router.get('/my', verifyToken, getMyDonations);
-router.get('/:id', verifyToken, getDonationById);
+router.get('/', authenticated, getAllDonations);
+router.get('/my', authenticated, getMyDonations);
+router.get('/:id', authenticated, getDonationById);
 
 // ==================== UPDATE ====================
-router.put('/:id', verifyToken, validate(updateDonationSchema), updateDonation);
+router.put('/:id', authenticated, validate(updateDonationSchema), updateDonation);
 
 // ==================== DELETE ====================
-router.delete('/:id', verifyToken, deleteDonation);
+router.delete('/:id', authenticated, deleteDonation);
 
 module.exports = router;

@@ -10,6 +10,7 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
 
 const corsOptions = require('./config/cors.config');
+const { globalRateLimiter } = require("./middlewares/rateLimiter");
 
 const uploadDir = path.join(__dirname, "uploads"); // -> create upload folder locally
 if (!fs.existsSync(uploadDir)) {
@@ -17,8 +18,9 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const app = express();
-app.use(express.json());
 app.use(cors(corsOptions));
+app.use(globalRateLimiter);
+app.use(express.json());
 
 if (process.env.NODE_ENV === "development") {
   app.use(

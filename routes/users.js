@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const verifyToken = require('../middlewares/authMiddleware');
+const { authenticatedUserRateLimiter } = require('../middlewares/rateLimiter');
 const validate = require('../middlewares/validate');
 const { updateUserProfileSchema, changePasswordSchema } = require('../schemas/userSchemas');
 const {
@@ -13,17 +14,19 @@ const {
     deleteUserById
 } = require('../controllers/userController');
 
+const authenticated = [verifyToken, authenticatedUserRateLimiter];
+
 // ==================== READ ====================
-router.get('/me', verifyToken, getMyProfile);
-router.get('/:id', verifyToken, getUserById);
-router.get('/', verifyToken, getAllUsers);
+router.get('/me', authenticated, getMyProfile);
+router.get('/:id', authenticated, getUserById);
+router.get('/', authenticated, getAllUsers);
 
 // ==================== UPDATE ====================
-router.put('/me', verifyToken, validate(updateUserProfileSchema), updateMyProfile);
-router.put('/me/password', verifyToken, validate(changePasswordSchema), changePassword);
+router.put('/me', authenticated, validate(updateUserProfileSchema), updateMyProfile);
+router.put('/me/password', authenticated, validate(changePasswordSchema), changePassword);
 
 // ==================== DELETE ====================
-router.delete('/me', verifyToken, deleteMyAccount);
-router.delete('/:id', verifyToken, deleteUserById);
+router.delete('/me', authenticated, deleteMyAccount);
+router.delete('/:id', authenticated, deleteUserById);
 
 module.exports = router;
