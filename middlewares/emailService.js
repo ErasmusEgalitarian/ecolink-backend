@@ -12,8 +12,8 @@ const transporter = nodemailer.createTransport({
 
 const sendResetEmail = async (to, token) => {
 
-    //gerar link de reset (ajuste a URL conforme necessário)
-    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+    const frontendUrl = process.env.FRONTEND_URL;
+    const resetLink = `${frontendUrl}/reset-password?token=${token}`;
 
     await transporter.sendMail({
         from: `"Support" <${process.env.SMTP_USER}>`,
