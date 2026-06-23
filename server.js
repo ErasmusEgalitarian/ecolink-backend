@@ -18,6 +18,11 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const app = express();
+
+app.get("/api/health", (_req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
 app.use(cors(corsOptions));
 app.use(globalRateLimiter);
 app.use(express.json());
@@ -48,6 +53,9 @@ app.use("/api/users", userRoutes);
 const donationRoutes = require("./routes/donation");
 app.use("/api/donation", donationRoutes);
 
+const semesterRoutes = require("./routes/semester");
+app.use("/api/semesters", semesterRoutes);
+
 const mediaRoutes = require("./routes/media");
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/media", mediaRoutes);
@@ -72,6 +80,7 @@ connectDB();
 
 if (process.env.NODE_ENV === "development") {
   require("./seeds/rolesSeeder");
+  require("./seeds/semestersSeeder");
 }
 
 module.exports = app;

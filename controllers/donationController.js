@@ -180,11 +180,10 @@ const updateDonation = async (req, res, next) => {
             });
         }
         
-        // Verificar se o usuário é o dono ou Admin
         if (donation.userId.toString() !== req.user.id) {
             const user = await User.findById(req.user.id).populate('roleId');
-            
-            if (!user || user.roleId.name !== 'Admin') {
+
+            if (user?.roleId?.name !== 'Admin') {
                 return res.status(403).json({
                     success: false,
                     message: 'You can only update your own donations'
@@ -230,11 +229,10 @@ const deleteDonation = async (req, res, next) => {
             });
         }
         
-        // Verificar se o usuário é o dono ou Admin
         if (donation.userId.toString() !== req.user.id) {
             const user = await User.findById(req.user.id).populate('roleId');
-            
-            if (!user || user.roleId.name !== 'Admin') {
+
+            if (user?.roleId?.name !== 'Admin') {
                 return res.status(403).json({
                     success: false,
                     message: 'You can only delete your own donations'

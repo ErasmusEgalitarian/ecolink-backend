@@ -8,7 +8,7 @@ const UserActivationSchema = new mongoose.Schema({
 
 UserActivationSchema.index(
     { createdAt: 1 }, 
-    { expireAfterSeconds: 30 }
+    { expireAfterSeconds: 60 * 10}
 );
 UserActivationSchema.index({ userId: 1 });
 

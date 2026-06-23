@@ -62,17 +62,15 @@ const register = async (req, res, next) => {
         const existingUserByEmail = await User.findOne({ email });
         if (existingUserByEmail) {
             if (existingUserByEmail.emailVerified !== true) {
+                // Only the original registrant (matching CPF) may trigger a resend.
+                // A different CPF means a different person — block to prevent account takeover.
                 if (existingUserByEmail.cpf !== cpf) {
-                    const existingUserByCpf = await User.findOne({ cpf });
-
-                    if (existingUserByCpf) {
-                        return res.status(409).json({
-                            success: false,
-                            code: 'CPF_ALREADY_REGISTERED',
-                            field: 'cpf',
-                            message: 'CPF already registered'
-                        });
-                    }
+                    return res.status(409).json({
+                        success: false,
+                        code: 'EMAIL_ALREADY_REGISTERED',
+                        field: 'email',
+                        message: 'Email already registered'
+                    });
                 }
 
                 await sendNewVerificationCode(existingUserByEmail);
@@ -282,20 +280,14 @@ const resendVerificationCode = async (req, res, next) => {
             RESEND_VERIFICATION_CODE_COOLDOWN_SECONDS
         );
 
-        if (!user) {
+        // Return the same 200 response regardless of whether the email exists or is
+        // already verified — prevents enumeration of registered/verified accounts.
+        if (!user || user.emailVerified === true) {
             return res.status(200).json({
                 success: true,
                 code: 'VERIFICATION_CODE_SENT',
                 message: 'If the email exists and is not verified, a verification code has been sent',
                 retryAfter
-            });
-        }
-
-        if (user.emailVerified === true) {
-            return res.status(409).json({
-                success: false,
-                code: 'EMAIL_ALREADY_VERIFIED',
-                message: 'Email already verified'
             });
         }
 
