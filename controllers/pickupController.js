@@ -133,8 +133,8 @@ const getAcceptedPickups = async (req, res, next) => {
 const getPendingPickups = async (req, res, next) => {
     try {
         const user = await User.findById(req.user.id).populate('roleId');
-        
-        if (!user || (user.roleId.name !== 'Editor' && user.roleId.name !== 'Admin')) {
+
+        if (user?.roleId?.name !== 'Editor' && user?.roleId?.name !== 'Admin') {
             return res.status(403).json({
                 success: false,
                 message: 'Only Editors and Admins can view pending pickups'
@@ -218,8 +218,8 @@ const acceptPickup = async (req, res, next) => {
         const { id } = req.params;
         
         const user = await User.findById(req.user.id).populate('roleId');
-        
-        if (!user || (user.roleId.name !== 'Editor' && user.roleId.name !== 'Admin')) {
+
+        if (user?.roleId?.name !== 'Editor' && user?.roleId?.name !== 'Admin') {
             return res.status(403).json({
                 success: false,
                 message: 'Only Editors and Admins can accept pickups'
@@ -397,8 +397,8 @@ const updatePickupStatus = async (req, res, next) => {
         const { pickupStatus } = req.body;
         
         const user = await User.findById(req.user.id).populate('roleId');
-        
-        if (!user || user.roleId.name !== 'Admin') {
+
+        if (user?.roleId?.name !== 'Admin') {
             return res.status(403).json({
                 success: false,
                 message: 'Only Admins can manually update pickup status'
@@ -449,8 +449,8 @@ const deletePickup = async (req, res, next) => {
         const { id } = req.params;
         
         const user = await User.findById(req.user.id).populate('roleId');
-        
-        if (!user || user.roleId.name !== 'Admin') {
+
+        if (user?.roleId?.name !== 'Admin') {
             return res.status(403).json({
                 success: false,
                 message: 'Only Admins can delete pickups'
