@@ -8,7 +8,7 @@ const DonationSchema = new mongoose.Schema({
     materialType: { type: String, enum: ['plastic', 'metal', 'glass', 'paper'], required: true },
     description: { type: String, default: '' },
     qtdMaterial: { type: Number, required: true, min: 0 },
-    mediaId: { type: mongoose.Schema.Types.ObjectId, ref: 'Media', required: true },
+    mediaId: { type: mongoose.Schema.Types.ObjectId, ref: 'Media', default: null },
     pickupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Pickup', default: null },
     status: { type: String, enum: ['pending', 'collected'], default: 'pending' },
 });

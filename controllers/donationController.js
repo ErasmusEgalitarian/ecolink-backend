@@ -29,13 +29,15 @@ const createDonation = async (req, res, next) => {
     try {
         const { ecopointId, materialType, description = '', qtdMaterial, mediaId } = req.body;
 
-        const mediaExists = await Media.findById(mediaId);
-        if (!mediaExists) {
-            return res.status(404).json({ 
-                success: false,
-                message: 'Media not found',
-                error: `Media with ID ${mediaId} does not exist` 
-            });
+        if (mediaId) {
+            const mediaExists = await Media.findById(mediaId);
+            if (!mediaExists) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Media not found',
+                    error: `Media with ID ${mediaId} does not exist`
+                });
+            }
         }
 
         const ecopoint = await EcoPoint.findById(ecopointId);
@@ -63,18 +65,20 @@ const createDonation = async (req, res, next) => {
         const pickup = await getOrCreateOpenPickup(ecopointId);
 
         const donation = new Donation({
-            userId: req.user.id, 
+            userId: req.user.id,
             ecopointId,
             materialType,
             description,
             qtdMaterial,
-            mediaId: mediaId, 
             pickupId: pickup._id,
+            ...(mediaId ? { mediaId } : {}),
         });
 
         const savedDonation = await donation.save();
 
-        await savedDonation.populate('mediaId');
+        if (savedDonation.mediaId) {
+            await savedDonation.populate('mediaId');
+        }
 
         res.status(201).json({
             success: true,

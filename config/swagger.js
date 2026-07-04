@@ -333,7 +333,7 @@ const options = {
             qtdMaterial: { type: 'integer', minimum: 1, example: 12 },
             mediaId: { $ref: '#/components/schemas/ObjectId' }
           },
-          required: ['ecopointId', 'materialType', 'qtdMaterial', 'mediaId']
+          required: ['ecopointId', 'materialType', 'qtdMaterial']
         },
         UpdateDonationRequest: {
           type: 'object',
