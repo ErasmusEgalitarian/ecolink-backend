@@ -6,6 +6,12 @@ const {
     buildAvailableLocationsPipeline,
     enrichLocationWithEcopoints
 } = require('../utils/locationHelpers');
+const { resolveImageUrl } = require('../utils/publicUrl');
+
+const mapLocationForResponse = (location, req) => ({
+    ...location,
+    imageUrl: resolveImageUrl(location.imageUrl, req),
+});
 
 /**
  * @description Lista locais com ecopontos a partir de uma posição,
@@ -42,7 +48,7 @@ const getAvailableLocations = async (req, res, next) => {
             success: true,
             available,
             count: locations.length,
-            data: locations
+            data: locations.map((location) => mapLocationForResponse(location, req))
         });
     } catch (error) {
         console.error('Error fetching available locations:', error);
@@ -85,7 +91,10 @@ const getLocationById = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            data: enrichLocationWithEcopoints(location, ecopoints)
+            data: mapLocationForResponse(
+                enrichLocationWithEcopoints(location, ecopoints),
+                req
+            )
         });
     } catch (error) {
         console.error('Error fetching location by id:', error);

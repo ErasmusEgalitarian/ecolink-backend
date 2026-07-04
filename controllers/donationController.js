@@ -3,6 +3,7 @@ const Pickup = require('../models/Pickup');
 const Media = require('../models/Media');
 const User = require('../models/User');
 const EcoPoint = require('../models/EcoPoint');
+const { ECOPOINT_WITH_LOCATION_POPULATE } = require('../utils/locationHelpers');
 
 const getOrCreateOpenPickup = async (ecopointId) => {
     for (let attempt = 0; attempt < 2; attempt++) {
@@ -135,17 +136,30 @@ const getAllDonations = async (req, res, next) => {
  */
 const getMyDonations = async (req, res, next) => {
     try {
-        const { page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 10, startDate, endDate } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit);
-        
-        const donations = await Donation.find({ userId: req.user.id })
+
+        const filter = { userId: req.user.id };
+
+        if (startDate || endDate) {
+            filter.donationDate = {};
+            if (startDate) {
+                filter.donationDate.$gte = new Date(startDate);
+            }
+            if (endDate) {
+                filter.donationDate.$lt = new Date(endDate);
+            }
+        }
+
+        const donations = await Donation.find(filter)
             .populate('mediaId')
+            .populate(ECOPOINT_WITH_LOCATION_POPULATE)
             .sort({ donationDate: -1 })
             .skip(skip)
             .limit(parseInt(limit))
             .lean();
-        
-        const total = await Donation.countDocuments({ userId: req.user.id });
+
+        const total = await Donation.countDocuments(filter);
         
         res.status(200).json({
             success: true,

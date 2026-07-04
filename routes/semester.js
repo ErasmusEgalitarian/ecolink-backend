@@ -9,6 +9,7 @@ const {
     getSemesters,
     getCurrentSemester,
     getCurrentProgress,
+    getCurrentDonationStats,
     getAllProgress,
     getSemesterProgress,
 } = require('../controllers/semesterController');
@@ -19,6 +20,7 @@ router.post('/', authenticated, validate(createSemesterSchema), createSemester);
 
 router.get('/', authenticated, getSemesters);
 router.get('/current/progress', authenticated, getCurrentProgress);
+router.get('/current/donation-stats', authenticated, getCurrentDonationStats);
 router.get('/current', authenticated, getCurrentSemester);
 router.get('/progress', authenticated, getAllProgress);
 router.get('/:id/progress', authenticated, getSemesterProgress);

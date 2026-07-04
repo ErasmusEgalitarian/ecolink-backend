@@ -1,6 +1,5 @@
 const Location = require('../models/Location');
 const EcoPoint = require('../models/EcoPoint');
-const { getUploadUrl } = require('../utils/publicUrl');
 
 const LOCATIONS = [
     {
@@ -8,7 +7,7 @@ const LOCATIONS = [
         address: 'Universidade de Brasília - Campus Universitário Darcy Ribeiro, Gleba A - Asa Norte, Brasília - DF, 70910-900',
         coordinates: {
             type: 'Point',
-            coordinates: [-47.8702, -15.7634]
+            coordinates: [-47.8677374892261, -15.760736751809766]
         },
         imageFilename: 'bce.png',
         operatingHours: 'Aberto 24h',
@@ -53,7 +52,7 @@ const seedLocations = async () => {
     try {
         for (const locationData of LOCATIONS) {
             const { ecopoints, imageFilename, ...locationFields } = locationData;
-            const imageUrl = getUploadUrl(imageFilename);
+            const imageUrl = `locations/${imageFilename}`;
 
             let location = await Location.findOne({ name: locationFields.name });
             if (!location) {

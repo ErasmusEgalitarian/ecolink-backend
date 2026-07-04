@@ -6,6 +6,53 @@ const User = require('../models/User');
 const findCurrentSemester = (now = new Date()) =>
     Semester.findOne({ startDate: { $lte: now }, endDate: { $gt: now } });
 
+const MATERIAL_TYPES = ['metal', 'paper', 'plastic', 'glass'];
+
+const computeSemesterDonationStats = async (semester) => {
+    const result = await Donation.aggregate([
+        {
+            $match: {
+                donationDate: { $gte: semester.startDate, $lt: semester.endDate },
+            },
+        },
+        {
+            $group: {
+                _id: '$materialType',
+                quantity: { $sum: '$qtdMaterial' },
+            },
+        },
+    ]);
+
+    const quantityByType = Object.fromEntries(
+        result.map((row) => [row._id, row.quantity])
+    );
+
+    const totalQuantity = MATERIAL_TYPES.reduce(
+        (sum, materialType) => sum + (quantityByType[materialType] || 0),
+        0
+    );
+
+    const materials = MATERIAL_TYPES.map((materialType) => {
+        const quantity = quantityByType[materialType] || 0;
+        const percentage = totalQuantity > 0
+            ? Math.round((quantity / totalQuantity) * 100)
+            : 0;
+
+        return { materialType, quantity, percentage };
+    });
+
+    return {
+        semesterId: semester._id,
+        name: semester.name,
+        year: semester.year,
+        period: semester.period,
+        startDate: semester.startDate,
+        endDate: semester.endDate,
+        totalQuantity,
+        materials,
+    };
+};
+
 const computeProgress = async (userId, semester) => {
     const result = await Donation.aggregate([
         {
@@ -110,6 +157,20 @@ const getCurrentProgress = async (req, res, next) => {
     }
 };
 
+const getCurrentDonationStats = async (req, res, next) => {
+    try {
+        const semester = await findCurrentSemester();
+        if (!semester) {
+            return res.status(404).json({ success: false, message: 'No active semester found' });
+        }
+        const stats = await computeSemesterDonationStats(semester);
+        res.status(200).json({ success: true, data: stats });
+    } catch (error) {
+        console.error('Error fetching current donation stats:', error);
+        next(error);
+    }
+};
+
 const getAllProgress = async (req, res, next) => {
     try {
         const semesters = await Semester.find().sort({ year: -1, period: -1 });
@@ -142,6 +203,7 @@ module.exports = {
     getSemesters,
     getCurrentSemester,
     getCurrentProgress,
+    getCurrentDonationStats,
     getAllProgress,
     getSemesterProgress,
 };
