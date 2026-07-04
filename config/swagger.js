@@ -1271,6 +1271,81 @@ const options = {
           }
         }
       },
+      '/api/ecopoints/by-qrcode/{qrCode}': {
+        get: {
+          tags: ['EcoPoints'],
+          summary: 'Resolver ecoponto a partir do QR code escaneado',
+          description: 'Busca um ecoponto pelo valor do campo qrCode. Aceita codigo plano (ex.: bce-plastic) ou URL com parametro q/qrCode. Retorna 409 quando o ecoponto existe mas nao esta open.',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: 'qrCode',
+              in: 'path',
+              required: true,
+              schema: { type: 'string', example: 'demo-ecolink' },
+              description: 'Valor escaneado do QR code (codigo plano ou URL)'
+            }
+          ],
+          responses: {
+            200: {
+              description: 'Ecoponto encontrado e disponivel para doacao',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      ecopoint: {
+                        type: 'object',
+                        properties: {
+                          id: { $ref: '#/components/schemas/ObjectId' },
+                          label: { type: 'string', example: 'EcoPonto Demo' },
+                          status: { type: 'string', enum: ['open'], example: 'open' },
+                          acceptedMaterials: {
+                            type: 'array',
+                            items: { type: 'string', enum: ['plastic', 'metal', 'glass', 'paper'] }
+                          },
+                          qrCode: { type: 'string', example: 'demo-ecolink' },
+                          locationId: { $ref: '#/components/schemas/ObjectId' },
+                          locationName: { type: 'string', example: 'ICC - Instituto de Ciência da Computação' },
+                          locationAddress: { type: 'string' }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            400: { $ref: '#/components/responses/BadRequest' },
+            401: { $ref: '#/components/responses/Unauthorized' },
+            404: { $ref: '#/components/responses/NotFound' },
+            409: {
+              description: 'Ecoponto encontrado, mas indisponivel para doacao',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: false },
+                      message: { type: 'string', example: 'EcoPoint is not available for donations (status: full)' },
+                      ecopoint: {
+                        type: 'object',
+                        properties: {
+                          id: { $ref: '#/components/schemas/ObjectId' },
+                          label: { type: 'string' },
+                          status: { type: 'string', enum: ['full', 'closed', 'offline'] },
+                          qrCode: { type: 'string' }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            500: { $ref: '#/components/responses/InternalServerError' }
+          }
+        }
+      },
       '/api/ecopoints/available': {
         get: {
           tags: ['EcoPoints'],

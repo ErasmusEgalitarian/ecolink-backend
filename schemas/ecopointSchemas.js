@@ -91,9 +91,19 @@ const ecopointIdSchema = z.object({
     }).trim().regex(/^[a-f\d]{24}$/i, 'EcoPoint ID must be a valid ObjectId')
 });
 
+const qrCodeParamSchema = z.object({
+    qrCode: z.string({
+        required_error: 'QR code is required'
+    })
+        .trim()
+        .min(1, 'QR code cannot be empty')
+        .max(120, 'QR code must be at most 120 characters long')
+});
+
 module.exports = {
     createEcopointSchema,
     updateEcopointSchema,
     nearbyEcopointSchema,
-    ecopointIdSchema
+    ecopointIdSchema,
+    qrCodeParamSchema
 };
