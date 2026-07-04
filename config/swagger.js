@@ -22,10 +22,7 @@ const options = {
       { name: 'Roles', description: 'Gestao de papeis (RBAC)' },
       { name: 'Media', description: 'Upload e gerenciamento de arquivos' },
       { name: 'Pickups', description: 'Fluxo de coleta de doacoes' },
-      {
-        name: 'EcoPoints (US-091)',
-        description: 'Dependente da US-091: endpoints ainda nao implementados no backend.'
-      },
+      { name: 'EcoPoints', description: 'Consulta de ecopontos' },
       {
         name: 'Sessions/QR Code (US-091)',
         description: 'Dependente da US-091: endpoints ainda nao implementados no backend.'
@@ -169,6 +166,8 @@ const options = {
           properties: {
             _id: { $ref: '#/components/schemas/ObjectId' },
             userId: {
+              nullable: true,
+              description: 'Nulo quando a doacao foi anonimizada (dono excluido)',
               oneOf: [
                 { $ref: '#/components/schemas/ObjectId' },
                 {
@@ -181,6 +180,7 @@ const options = {
                 }
               ]
             },
+            anonymized: { type: 'boolean', example: false },
             ecopointId: { $ref: '#/components/schemas/ObjectId' },
             donationDate: { type: 'string', format: 'date-time' },
             materialType: {
@@ -195,26 +195,34 @@ const options = {
                 { $ref: '#/components/schemas/ObjectId' },
                 { $ref: '#/components/schemas/Media' }
               ]
+            },
+            pickupId: { $ref: '#/components/schemas/ObjectId' },
+            status: {
+              type: 'string',
+              enum: ['pending', 'collected'],
+              example: 'pending'
             }
           }
         },
         Pickup: {
           type: 'object',
+          description: 'Lote de coleta de um ecoponto (agrupa varias doacoes)',
           properties: {
             _id: { $ref: '#/components/schemas/ObjectId' },
-            donationId: {
+            ecopointId: {
               oneOf: [
                 { $ref: '#/components/schemas/ObjectId' },
-                { $ref: '#/components/schemas/Donation' }
+                {
+                  type: 'object',
+                  properties: {
+                    _id: { $ref: '#/components/schemas/ObjectId' },
+                    name: { type: 'string' },
+                    address: { type: 'string' },
+                    coordinates: { type: 'object' }
+                  }
+                }
               ]
             },
-            userId: {
-              oneOf: [
-                { $ref: '#/components/schemas/ObjectId' },
-                { $ref: '#/components/schemas/UserPublic' }
-              ]
-            },
-            ecopointId: { $ref: '#/components/schemas/ObjectId' },
             pickupBy: {
               oneOf: [
                 { $ref: '#/components/schemas/ObjectId' },
@@ -227,10 +235,89 @@ const options = {
               enum: ['pending', 'accepted', 'completed', 'cancelled'],
               example: 'pending'
             },
+            donations: {
+              type: 'array',
+              description: 'Doacoes que compoem o lote (presente no detalhe do pickup)',
+              items: { $ref: '#/components/schemas/Donation' }
+            },
             confirmedAt: { type: 'string', format: 'date-time', nullable: true },
             completedAt: { type: 'string', format: 'date-time', nullable: true },
             cancelledAt: { type: 'string', format: 'date-time', nullable: true },
             createdAt: { type: 'string', format: 'date-time' }
+          }
+        },
+        Location: {
+          type: 'object',
+          properties: {
+            _id: { $ref: '#/components/schemas/ObjectId' },
+            name: { type: 'string', example: 'BCE - Biblioteca Central' },
+            address: { type: 'string', example: 'Campus Universitário Darcy Ribeiro, Brasília - DF' },
+            coordinates: {
+              type: 'object',
+              properties: {
+                type: { type: 'string', example: 'Point' },
+                coordinates: {
+                  type: 'array',
+                  items: { type: 'number' },
+                  example: [-47.8702, -15.7634],
+                  description: '[longitude, latitude]'
+                }
+              }
+            },
+            imageUrl: { type: 'string', example: 'http://localhost:5000/uploads/bce.jpg' },
+            operatingHours: { type: 'string', example: 'Aberto 24h' },
+            isExtern: { type: 'boolean', example: false },
+            acceptedMaterials: {
+              type: 'array',
+              items: { type: 'string', enum: ['plastic', 'metal', 'glass', 'paper'] },
+              description: 'Uniao dos materiais aceitos pelos ecopontos do local'
+            },
+            status: {
+              type: 'string',
+              enum: ['open', 'full', 'closed', 'offline'],
+              example: 'open',
+              description: 'Status agregado dos ecopontos do local'
+            },
+            distance: {
+              type: 'number',
+              description: 'Distancia em metros a partir da localizacao informada (somente em /available)',
+              example: 1240
+            },
+            ecopoints: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/EcoPoint' }
+            }
+          }
+        },
+        EcoPoint: {
+          type: 'object',
+          properties: {
+            _id: { $ref: '#/components/schemas/ObjectId' },
+            locationId: { $ref: '#/components/schemas/ObjectId' },
+            label: { type: 'string', example: 'Caixa entrada principal' },
+            acceptedMaterials: {
+              type: 'array',
+              items: { type: 'string', enum: ['plastic', 'metal', 'glass', 'paper'] }
+            },
+            status: { type: 'string', enum: ['open', 'full', 'closed', 'offline'], example: 'open' },
+            qrCode: { type: 'string', example: 'bce-paper-metal-glass' },
+            location: { $ref: '#/components/schemas/Location' }
+          }
+        },
+        AvailableEcopointsResponse: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            available: {
+              type: 'boolean',
+              description: 'true se ha ao menos um ecoponto com status open na lista',
+              example: true
+            },
+            count: { type: 'integer', example: 3 },
+            data: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/Location' }
+            }
           }
         },
         CreateDonationRequest: {
@@ -358,7 +445,7 @@ const options = {
           type: 'object',
           properties: {
             success: { type: 'boolean', example: true },
-            message: { type: 'string', example: 'Donation and pickup created successfully' },
+            message: { type: 'string', example: 'Donation registered and attached to ecopoint pickup successfully' },
             donation: { $ref: '#/components/schemas/Donation' },
             pickup: { $ref: '#/components/schemas/Pickup' }
           }
@@ -590,7 +677,7 @@ const options = {
       '/api/donation': {
         post: {
           tags: ['Donations'],
-          summary: 'Criar doacao e pickup automatico',
+          summary: 'Criar doacao (anexada ao lote de coleta do ecoponto)',
           security: [{ bearerAuth: [] }],
           requestBody: {
             required: true,
@@ -732,37 +819,6 @@ const options = {
               }
             },
             400: { $ref: '#/components/responses/BadRequest' },
-            401: { $ref: '#/components/responses/Unauthorized' },
-            403: { $ref: '#/components/responses/Forbidden' },
-            404: { $ref: '#/components/responses/NotFound' },
-            500: { $ref: '#/components/responses/InternalServerError' }
-          }
-        },
-        delete: {
-          tags: ['Donations'],
-          summary: 'Remover doacao (dono ou admin)',
-          security: [{ bearerAuth: [] }],
-          parameters: [
-            {
-              name: 'id',
-              in: 'path',
-              required: true,
-              schema: { $ref: '#/components/schemas/ObjectId' }
-            }
-          ],
-          responses: {
-            200: {
-              description: 'Doacao removida',
-              content: {
-                'application/json': {
-                  schema: { $ref: '#/components/schemas/GenericSuccessResponse' },
-                  example: {
-                    success: true,
-                    message: 'Donation and associated pickup deleted successfully'
-                  }
-                }
-              }
-            },
             401: { $ref: '#/components/responses/Unauthorized' },
             403: { $ref: '#/components/responses/Forbidden' },
             404: { $ref: '#/components/responses/NotFound' },
@@ -1215,6 +1271,92 @@ const options = {
           }
         }
       },
+      '/api/ecopoints/available': {
+        get: {
+          tags: ['EcoPoints'],
+          summary: 'Listar locais com ecopontos por proximidade',
+          description: 'Retorna locais ordenados por prioridade de status agregado (open > full > closed > offline) e distancia. Cada local inclui seus ecopontos e a uniao de materiais aceitos.',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { name: 'lat', in: 'query', required: true, schema: { type: 'number', example: -23.5505 }, description: 'Latitude atual' },
+            { name: 'lng', in: 'query', required: true, schema: { type: 'number', example: -46.6333 }, description: 'Longitude atual' },
+            { name: 'maxDistance', in: 'query', required: false, schema: { type: 'number', example: 5000 }, description: 'Raio maximo em metros (opcional)' },
+            { name: 'materialType', in: 'query', required: false, schema: { type: 'string', enum: ['plastic', 'metal', 'glass', 'paper'] }, description: 'Filtra ecopontos que aceitam o material (opcional)' },
+            { name: 'limit', in: 'query', required: false, schema: { type: 'integer', default: 20, maximum: 100 } }
+          ],
+          responses: {
+            200: {
+              description: 'Lista de ecopontos ordenada por prioridade e distancia',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/AvailableEcopointsResponse' }
+                }
+              }
+            },
+            400: { $ref: '#/components/responses/BadRequest' },
+            401: { $ref: '#/components/responses/Unauthorized' },
+            500: { $ref: '#/components/responses/InternalServerError' }
+          }
+        }
+      },
+      '/api/locations/available': {
+        get: {
+          tags: ['EcoPoints'],
+          summary: 'Listar locais com ecopontos por proximidade',
+          description: 'Mesma resposta de /api/ecopoints/available.',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { name: 'lat', in: 'query', required: true, schema: { type: 'number', example: -15.7634 }, description: 'Latitude atual' },
+            { name: 'lng', in: 'query', required: true, schema: { type: 'number', example: -47.8702 }, description: 'Longitude atual' },
+            { name: 'maxDistance', in: 'query', required: false, schema: { type: 'number', example: 5000 }, description: 'Raio maximo em metros (opcional)' },
+            { name: 'materialType', in: 'query', required: false, schema: { type: 'string', enum: ['plastic', 'metal', 'glass', 'paper'] }, description: 'Filtra ecopontos que aceitam o material (opcional)' },
+            { name: 'limit', in: 'query', required: false, schema: { type: 'integer', default: 20, maximum: 100 } }
+          ],
+          responses: {
+            200: {
+              description: 'Lista de locais ordenada por prioridade e distancia',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/AvailableEcopointsResponse' }
+                }
+              }
+            },
+            400: { $ref: '#/components/responses/BadRequest' },
+            401: { $ref: '#/components/responses/Unauthorized' },
+            500: { $ref: '#/components/responses/InternalServerError' }
+          }
+        }
+      },
+      '/api/locations/{id}': {
+        get: {
+          tags: ['EcoPoints'],
+          summary: 'Detalhes de um local com seus ecopontos',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { $ref: '#/components/schemas/ObjectId' } }
+          ],
+          responses: {
+            200: {
+              description: 'Local encontrado',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: { $ref: '#/components/schemas/Location' }
+                    }
+                  }
+                }
+              }
+            },
+            400: { $ref: '#/components/responses/BadRequest' },
+            401: { $ref: '#/components/responses/Unauthorized' },
+            404: { $ref: '#/components/responses/NotFound' },
+            500: { $ref: '#/components/responses/InternalServerError' }
+          }
+        }
+      },
       '/api/pickups': {
         get: {
           tags: ['Pickups'],
@@ -1226,7 +1368,7 @@ const options = {
               in: 'query',
               schema: { type: 'string', enum: ['pending', 'accepted', 'completed', 'cancelled'] }
             },
-            { name: 'userId', in: 'query', schema: { $ref: '#/components/schemas/ObjectId' } },
+            { name: 'ecopointId', in: 'query', schema: { $ref: '#/components/schemas/ObjectId' } },
             { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
             { name: 'limit', in: 'query', schema: { type: 'integer', default: 10 } }
           ],
@@ -1247,7 +1389,7 @@ const options = {
       '/api/pickups/my': {
         get: {
           tags: ['Pickups'],
-          summary: 'Listar pickups criados por mim',
+          summary: 'Listar pickups que contem minhas doacoes',
           security: [{ bearerAuth: [] }],
           parameters: [
             { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
@@ -1444,7 +1586,7 @@ const options = {
       '/api/pickups/{id}/cancel': {
         put: {
           tags: ['Pickups'],
-          summary: 'Cancelar pickup (criador ou aceitou)',
+          summary: 'Cancelar pickup (quem aceitou ou editor/admin)',
           security: [{ bearerAuth: [] }],
           parameters: [
             { name: 'id', in: 'path', required: true, schema: { $ref: '#/components/schemas/ObjectId' } }

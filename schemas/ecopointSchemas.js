@@ -1,116 +1,99 @@
 const { z } = require('zod');
 
+const materialEnum = z.enum(['plastic', 'metal', 'glass', 'paper'], {
+    invalid_type_error: 'Accepted materials must be one of: plastic, metal, glass, paper'
+});
+
+const statusEnum = z.enum(['open', 'full', 'closed', 'offline'], {
+    invalid_type_error: 'Status must be one of: open, full, closed, offline'
+});
 
 const createEcopointSchema = z.object({
-    name: z.string({
-        required_error: 'Name is required'
+    locationId: z.string({
+        required_error: 'Location ID is required'
+    }).trim().regex(/^[a-f\d]{24}$/i, 'Location ID must be a valid ObjectId'),
+
+    label: z.string({
+        required_error: 'Label is required'
     })
-    .min(2, 'Name must be at least 2 characters long')
-    .max(120, 'Name must be at most 120 characters long')
-    .trim(),
+        .min(2, 'Label must be at least 2 characters long')
+        .max(120, 'Label must be at most 120 characters long')
+        .trim(),
 
-    address: z.string({
-        required_error: 'Address is required'
-    })
-    .min(5, 'Address must be at least 5 characters long')
-    .max(255, 'Address must be at most 255 characters long')
-    .trim(),
+    acceptedMaterials: z.array(materialEnum)
+        .min(1, 'At least one accepted material must be provided'),
 
-    coordinates: z.object({
-        coordinates: z.array(z.number({
-            invalid_type_error: 'Coordinates must be numeric values'
-        }))
-            .length(2, 'Coordinates must contain [longitude, latitude]')
-            .refine(([longitude]) => longitude >= -180 && longitude <= 180, {
-                message: 'Longitude must be between -180 and 180'
-            })
-            .refine(([, latitude]) => latitude >= -90 && latitude <= 90, {
-                message: 'Latitude must be between -90 and 90'
-            })
-    }, {
-        required_error: 'Coordinates are required'
-    }),
+    status: statusEnum.optional().default('open'),
 
-    operatingHours: z.string()
-        .max(120, 'Operating hours must be at most 120 characters long')
-        .trim()
-        .optional()
-        .default(''),
-
-    phone: z.string()
-        .trim()
-        .regex(/^[\d\s()+-]{8,20}$/, 'Phone must contain 8 to 20 valid phone characters')
-        .optional()
-        .default(''),
-
-})
-
+    qrCode: z.string().trim().max(120).optional().default('')
+});
 
 const updateEcopointSchema = z.object({
-    name: z.string()
-        .min(2, 'Name must be at least 2 characters long')
-        .max(120, 'Name must be at most 120 characters long')
+    locationId: z.string()
+        .trim()
+        .regex(/^[a-f\d]{24}$/i, 'Location ID must be a valid ObjectId')
+        .optional(),
+
+    label: z.string()
+        .min(2, 'Label must be at least 2 characters long')
+        .max(120, 'Label must be at most 120 characters long')
         .trim()
         .optional(),
 
-    address: z.string()
-        .min(5, 'Address must be at least 5 characters long')
-        .max(255, 'Address must be at most 255 characters long')
-        .trim()
-        .optional(),
-
-    coordinates: z.object({
-        type: z.literal('Point', {
-            invalid_type_error: 'Coordinates type must be Point'
-        }),
-        coordinates: z.array(z.number({
-            invalid_type_error: 'Coordinates must be numeric values'
-        }))
-            .length(2, 'Coordinates must contain [longitude, latitude]')
-            .refine(([longitude]) => longitude >= -180 && longitude <= 180, {
-                message: 'Longitude must be between -180 and 180'
-            })
-            .refine(([, latitude]) => latitude >= -90 && latitude <= 90, {
-                message: 'Latitude must be between -90 and 90'
-            })
-    }).optional(),
-
-    acceptedMaterials: z.array(
-        z.enum(['plastic', 'metal', 'glass', 'paper'], {
-            invalid_type_error: 'Accepted materials must be one of: plastic, metal, glass, paper'
-        })
-    )
+    acceptedMaterials: z.array(materialEnum)
         .min(1, 'At least one accepted material must be provided')
         .optional(),
 
-    status: z.enum(['Open', 'Closed', 'Full'], {
-        invalid_type_error: 'Status must be one of: Open, Closed, Full'
-    }).optional(),
+    status: statusEnum.optional(),
 
-    operationalStatus: z.enum(['Open', 'Closed', 'Full'], {
-        invalid_type_error: 'Operational status must be one of: Open, Closed, Full'
-    }).optional(),
-
-    operatingHours: z.string()
-        .max(120, 'Operating hours must be at most 120 characters long')
-        .trim()
-        .optional(),
-
-    phone: z.string()
-        .trim()
-        .regex(/^[\d\s()+-]{8,20}$/, 'Phone must contain 8 to 20 valid phone characters')
-        .optional(),
-
-    isActive: z.boolean().optional()
+    qrCode: z.string().trim().max(120).optional()
 })
     .refine(data => Object.keys(data).length > 0, {
         message: 'At least one field must be provided for update'
-    })
+    });
 
-    
-    
+const nearbyEcopointSchema = z.object({
+    lat: z.coerce.number({
+        required_error: 'Latitude is required',
+        invalid_type_error: 'Latitude must be a number'
+    })
+        .min(-90, 'Latitude must be between -90 and 90')
+        .max(90, 'Latitude must be between -90 and 90'),
+
+    lng: z.coerce.number({
+        required_error: 'Longitude is required',
+        invalid_type_error: 'Longitude must be a number'
+    })
+        .min(-180, 'Longitude must be between -180 and 180')
+        .max(180, 'Longitude must be between -180 and 180'),
+
+    maxDistance: z.coerce.number({
+        invalid_type_error: 'maxDistance must be a number'
+    })
+        .positive('maxDistance must be a positive number (meters)')
+        .optional(),
+
+    materialType: materialEnum.optional(),
+
+    limit: z.coerce.number({
+        invalid_type_error: 'limit must be a number'
+    })
+        .int('limit must be an integer')
+        .positive('limit must be a positive number')
+        .max(100, 'limit must be at most 100')
+        .optional()
+        .default(20)
+});
+
+const ecopointIdSchema = z.object({
+    id: z.string({
+        required_error: 'EcoPoint ID is required'
+    }).trim().regex(/^[a-f\d]{24}$/i, 'EcoPoint ID must be a valid ObjectId')
+});
 
 module.exports = {
     createEcopointSchema,
-    updateEcopointSchema
+    updateEcopointSchema,
+    nearbyEcopointSchema,
+    ecopointIdSchema
 };
