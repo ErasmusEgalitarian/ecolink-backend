@@ -2,9 +2,25 @@ const Donation = require('../models/Donation');
 const Pickup = require('../models/Pickup');
 const Media = require('../models/Media');
 const User = require('../models/User');
+const EcoPoint = require('../models/EcoPoint');
+
+const getOrCreateOpenPickup = async (ecopointId) => {
+    for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+            return await Pickup.findOneAndUpdate(
+                { ecopointId, pickupStatus: 'pending' },
+                { $setOnInsert: { ecopointId, pickupStatus: 'pending', createdAt: new Date() } },
+                { new: true, upsert: true }
+            );
+        } catch (error) {
+            if (error.code === 11000 && attempt === 0) continue;
+            throw error;
+        }
+    }
+};
 
 /**
- * @description Cria uma nova doação (e pickup automático)
+ * @description Cria uma nova doação e a anexa ao lote de coleta aberto do ecoponto
  * @route POST /api/donation
  * @access Private
  */
@@ -21,6 +37,30 @@ const createDonation = async (req, res, next) => {
             });
         }
 
+        const ecopoint = await EcoPoint.findById(ecopointId);
+        if (!ecopoint) {
+            return res.status(404).json({
+                success: false,
+                message: 'EcoPoint not found'
+            });
+        }
+
+        if (!ecopoint.acceptedMaterials.includes(materialType)) {
+            return res.status(400).json({
+                success: false,
+                message: `EcoPoint does not accept material type: ${materialType}`
+            });
+        }
+
+        if (ecopoint.status !== 'open') {
+            return res.status(400).json({
+                success: false,
+                message: `EcoPoint is not available for donations (status: ${ecopoint.status})`
+            });
+        }
+
+        const pickup = await getOrCreateOpenPickup(ecopointId);
+
         const donation = new Donation({
             userId: req.user.id, 
             ecopointId,
@@ -28,25 +68,18 @@ const createDonation = async (req, res, next) => {
             description,
             qtdMaterial,
             mediaId: mediaId, 
+            pickupId: pickup._id,
         });
 
         const savedDonation = await donation.save();
-        
-        const pickup = new Pickup({
-            donationId: savedDonation._id,
-            userId: req.user.id,
-            ecopointId,
-        });
-
-        const savedPickup = await pickup.save();
 
         await savedDonation.populate('mediaId');
 
         res.status(201).json({
             success: true,
-            message: 'Donation and pickup created successfully',
+            message: 'Donation registered and attached to ecopoint pickup successfully',
             donation: savedDonation,
-            pickup: savedPickup
+            pickup
         });
     } catch (error) {
         console.error('Error saving donation:', error);
@@ -180,7 +213,7 @@ const updateDonation = async (req, res, next) => {
             });
         }
         
-        if (donation.userId.toString() !== req.user.id) {
+        if (!donation.userId || donation.userId.toString() !== req.user.id) {
             const user = await User.findById(req.user.id).populate('roleId');
 
             if (user?.roleId?.name !== 'Admin') {
@@ -211,56 +244,10 @@ const updateDonation = async (req, res, next) => {
     }
 };
 
-/**
- * @description Deleta doação (e pickup associado)
- * @route DELETE /api/donation/:id
- * @access Private (Dono ou Admin)
- */
-const deleteDonation = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        
-        const donation = await Donation.findById(id);
-        
-        if (!donation) {
-            return res.status(404).json({
-                success: false,
-                message: 'Donation not found'
-            });
-        }
-        
-        if (donation.userId.toString() !== req.user.id) {
-            const user = await User.findById(req.user.id).populate('roleId');
-
-            if (user?.roleId?.name !== 'Admin') {
-                return res.status(403).json({
-                    success: false,
-                    message: 'You can only delete your own donations'
-                });
-            }
-        }
-        
-        // Deletar pickup associado
-        await Pickup.deleteOne({ donationId: id });
-        
-        // Deletar doação
-        await Donation.findByIdAndDelete(id);
-        
-        res.status(200).json({
-            success: true,
-            message: 'Donation and associated pickup deleted successfully'
-        });
-    } catch (error) {
-        console.error('Error deleting donation:', error);
-        next(error);
-    }
-};
-
 module.exports = {
     createDonation,
     getAllDonations,
     getMyDonations,
     getDonationById,
-    updateDonation,
-    deleteDonation
+    updateDonation
 };

@@ -1,6 +1,14 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
 
+const anonymizeUserDonations = async (userId) => {
+    const Donation = require('../models/Donation');
+    await Donation.updateMany(
+        { userId },
+        { $set: { userId: null, anonymized: true } }
+    );
+};
+
 /**
  * @description Busca perfil do usuário autenticado
  * @route GET /api/users/me
@@ -227,12 +235,7 @@ const deleteMyAccount = async (req, res, next) => {
             });
         }
         
-        // Deletar todas as doações e pickups do usuário
-        const Donation = require('../models/Donation');
-        const Pickup = require('../models/Pickup');
-        
-        await Donation.deleteMany({ userId: req.user.id });
-        await Pickup.deleteMany({ userId: req.user.id });
+        await anonymizeUserDonations(req.user.id);
         
         await User.findByIdAndDelete(req.user.id);
         
@@ -280,12 +283,7 @@ const deleteUserById = async (req, res, next) => {
             });
         }
         
-        // Deletar todas as doações e pickups do usuário
-        const Donation = require('../models/Donation');
-        const Pickup = require('../models/Pickup');
-        
-        await Donation.deleteMany({ userId: id });
-        await Pickup.deleteMany({ userId: id });
+        await anonymizeUserDonations(id);
         
         await User.findByIdAndDelete(id);
         

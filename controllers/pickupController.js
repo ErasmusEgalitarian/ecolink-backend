@@ -1,6 +1,14 @@
 const Pickup = require('../models/Pickup');
 const Donation = require('../models/Donation');
 const User = require('../models/User');
+const { ECOPOINT_WITH_LOCATION_POPULATE } = require('../utils/locationHelpers');
+
+const getPickupDonations = (pickupId) =>
+    Donation.find({ pickupId })
+        .populate('userId', 'username email phone address')
+        .populate('mediaId')
+        .sort({ donationDate: -1 })
+        .lean();
 
 /**
  * @description Lista todos os pickups (com filtros)
@@ -9,21 +17,17 @@ const User = require('../models/User');
  */
 const getAllPickups = async (req, res, next) => {
     try {
-        const { pickupStatus, userId, page = 1, limit = 10 } = req.query;
+        const { pickupStatus, ecopointId, page = 1, limit = 10 } = req.query;
         
         const filters = {};
         if (pickupStatus) filters.pickupStatus = pickupStatus;
-        if (userId) filters.userId = userId;
+        if (ecopointId) filters.ecopointId = ecopointId;
         
         const skip = (parseInt(page) - 1) * parseInt(limit);
         
         const pickups = await Pickup.find(filters)
-            .populate('userId', 'username email phone')
+            .populate(ECOPOINT_WITH_LOCATION_POPULATE)
             .populate('pickupBy', 'username email phone')
-            .populate({
-                path: 'donationId',
-                populate: { path: 'mediaId' }
-            })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(parseInt(limit))
@@ -48,7 +52,7 @@ const getAllPickups = async (req, res, next) => {
 };
 
 /**
- * @description Lista pickups do usuário autenticado (criados por ele)
+ * @description Lista pickups que contêm doações do usuário autenticado
  * @route GET /api/pickups/my
  * @access Private
  */
@@ -57,18 +61,22 @@ const getMyPickups = async (req, res, next) => {
         const { page = 1, limit = 10 } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit);
         
-        const pickups = await Pickup.find({ userId: req.user.id })
+        const pickupIds = await Donation.distinct('pickupId', {
+            userId: req.user.id,
+            pickupId: { $ne: null }
+        });
+        
+        const filters = { _id: { $in: pickupIds } };
+        
+        const pickups = await Pickup.find(filters)
+            .populate(ECOPOINT_WITH_LOCATION_POPULATE)
             .populate('pickupBy', 'username email phone')
-            .populate({
-                path: 'donationId',
-                populate: { path: 'mediaId' }
-            })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(parseInt(limit))
             .lean();
         
-        const total = await Pickup.countDocuments({ userId: req.user.id });
+        const total = await Pickup.countDocuments(filters);
         
         res.status(200).json({
             success: true,
@@ -97,11 +105,7 @@ const getAcceptedPickups = async (req, res, next) => {
         const skip = (parseInt(page) - 1) * parseInt(limit);
         
         const pickups = await Pickup.find({ pickupBy: req.user.id })
-            .populate('userId', 'username email phone address')
-            .populate({
-                path: 'donationId',
-                populate: { path: 'mediaId' }
-            })
+            .populate(ECOPOINT_WITH_LOCATION_POPULATE)
             .sort({ confirmedAt: -1 })
             .skip(skip)
             .limit(parseInt(limit))
@@ -145,11 +149,7 @@ const getPendingPickups = async (req, res, next) => {
         const skip = (parseInt(page) - 1) * parseInt(limit);
         
         const pickups = await Pickup.find({ pickupStatus: 'pending' })
-            .populate('userId', 'username email phone address')
-            .populate({
-                path: 'donationId',
-                populate: { path: 'mediaId' }
-            })
+            .populate(ECOPOINT_WITH_LOCATION_POPULATE)
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(parseInt(limit))
@@ -174,7 +174,7 @@ const getPendingPickups = async (req, res, next) => {
 };
 
 /**
- * @description Busca pickup por ID
+ * @description Busca pickup por ID (com as doações do lote)
  * @route GET /api/pickups/:id
  * @access Private
  */
@@ -183,12 +183,8 @@ const getPickupById = async (req, res, next) => {
         const { id } = req.params;
         
         const pickup = await Pickup.findById(id)
-            .populate('userId', 'username email phone address')
+            .populate(ECOPOINT_WITH_LOCATION_POPULATE)
             .populate('pickupBy', 'username email phone')
-            .populate({
-                path: 'donationId',
-                populate: { path: 'mediaId' }
-            })
             .lean();
         
         if (!pickup) {
@@ -197,6 +193,8 @@ const getPickupById = async (req, res, next) => {
                 message: 'Pickup not found'
             });
         }
+        
+        pickup.donations = await getPickupDonations(pickup._id);
         
         res.status(200).json({
             success: true,
@@ -248,12 +246,14 @@ const acceptPickup = async (req, res, next) => {
         
         await pickup.save();
         
-        await pickup.populate(['userId', 'pickupBy', 'donationId']);
+        await pickup.populate([ECOPOINT_WITH_LOCATION_POPULATE, 'pickupBy']);
+        const data = pickup.toObject();
+        data.donations = await getPickupDonations(pickup._id);
         
         res.status(200).json({
             success: true,
             message: 'Pickup accepted successfully',
-            data: pickup
+            data
         });
     } catch (error) {
         console.error('Error accepting pickup:', error);
@@ -262,7 +262,7 @@ const acceptPickup = async (req, res, next) => {
 };
 
 /**
- * @description Completa um pickup
+ * @description Completa um pickup e credita estatísticas de cada doador
  * @route PUT /api/pickups/:id/complete
  * @access Private (Quem aceitou)
  */
@@ -298,26 +298,36 @@ const completePickup = async (req, res, next) => {
         
         await pickup.save();
         
-        // Atualizar estatísticas do usuário
-        const donation = await Donation.findById(pickup.donationId);
-        if (donation) {
-            await User.updateOne(
-                { _id: pickup.userId },
-                {
-                    $inc: {
-                        totalPickups: 1,
-                        wasteSaved: donation.qtdMaterial
-                    }
-                }
-            );
+        const donations = await Donation.find({ pickupId: pickup._id });
+        
+        const creditByUser = new Map();
+        for (const donation of donations) {
+            if (!donation.userId) continue;
+            const key = donation.userId.toString();
+            const acc = creditByUser.get(key) || { wasteSaved: 0, totalPickups: 0 };
+            acc.wasteSaved += donation.qtdMaterial;
+            acc.totalPickups += 1;
+            creditByUser.set(key, acc);
         }
         
-        await pickup.populate(['userId', 'pickupBy', 'donationId']);
+        await Promise.all([
+            Donation.updateMany({ pickupId: pickup._id }, { $set: { status: 'collected' } }),
+            ...[...creditByUser.entries()].map(([userId, credit]) =>
+                User.updateOne(
+                    { _id: userId },
+                    { $inc: { totalPickups: credit.totalPickups, wasteSaved: credit.wasteSaved } }
+                )
+            )
+        ]);
+        
+        await pickup.populate([ECOPOINT_WITH_LOCATION_POPULATE, 'pickupBy']);
+        const data = pickup.toObject();
+        data.donations = await getPickupDonations(pickup._id);
         
         res.status(200).json({
             success: true,
             message: 'Pickup completed successfully',
-            data: pickup
+            data
         });
     } catch (error) {
         console.error('Error completing pickup:', error);
@@ -326,9 +336,9 @@ const completePickup = async (req, res, next) => {
 };
 
 /**
- * @description Cancela um pickup
+ * @description Cancela um pickup, liberando as doações de volta para coleta
  * @route PUT /api/pickups/:id/cancel
- * @access Private (Criador ou quem aceitou)
+ * @access Private (Quem aceitou ou Editor/Admin)
  */
 const cancelPickup = async (req, res, next) => {
     try {
@@ -343,14 +353,17 @@ const cancelPickup = async (req, res, next) => {
             });
         }
         
-        // Verificar permissão
-        const isCreator = pickup.userId.toString() === req.user.id;
         const isAcceptor = pickup.pickupBy && pickup.pickupBy.toString() === req.user.id;
+        let isPrivileged = false;
+        if (!isAcceptor) {
+            const user = await User.findById(req.user.id).populate('roleId');
+            isPrivileged = !!user && (user.roleId.name === 'Editor' || user.roleId.name === 'Admin');
+        }
         
-        if (!isCreator && !isAcceptor) {
+        if (!isAcceptor && !isPrivileged) {
             return res.status(403).json({
                 success: false,
-                message: 'You can only cancel pickups you created or accepted'
+                message: 'You can only cancel pickups you accepted (or as Editor/Admin)'
             });
         }
         
@@ -373,7 +386,12 @@ const cancelPickup = async (req, res, next) => {
         
         await pickup.save();
         
-        await pickup.populate(['userId', 'pickupBy', 'donationId']);
+        await Donation.updateMany(
+            { pickupId: pickup._id },
+            { $set: { pickupId: null, status: 'pending' } }
+        );
+        
+        await pickup.populate([ECOPOINT_WITH_LOCATION_POPULATE, 'pickupBy']);
         
         res.status(200).json({
             success: true,
@@ -426,7 +444,7 @@ const updatePickupStatus = async (req, res, next) => {
         
         await pickup.save();
         
-        await pickup.populate(['userId', 'pickupBy', 'donationId']);
+        await pickup.populate([ECOPOINT_WITH_LOCATION_POPULATE, 'pickupBy']);
         
         res.status(200).json({
             success: true,
@@ -440,7 +458,7 @@ const updatePickupStatus = async (req, res, next) => {
 };
 
 /**
- * @description Deleta pickup (Admin)
+ * @description Deleta pickup (Admin), desvinculando suas doações
  * @route DELETE /api/pickups/:id
  * @access Private (Admin)
  */
@@ -465,6 +483,11 @@ const deletePickup = async (req, res, next) => {
                 message: 'Pickup not found'
             });
         }
+        
+        await Donation.updateMany(
+            { pickupId: pickup._id },
+            { $set: { pickupId: null, status: 'pending' } }
+        );
         
         await Pickup.findByIdAndDelete(id);
         

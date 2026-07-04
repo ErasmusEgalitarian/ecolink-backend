@@ -9,8 +9,7 @@ const {
     getAllDonations,
     getMyDonations,
     getDonationById,
-    updateDonation,
-    deleteDonation
+    updateDonation
 } = require('../controllers/donationController');
 
 const authenticated = [verifyToken, authenticatedUserRateLimiter];
@@ -25,8 +24,5 @@ router.get('/:id', authenticated, getDonationById);
 
 // ==================== UPDATE ====================
 router.put('/:id', authenticated, validate(updateDonationSchema), updateDonation);
-
-// ==================== DELETE ====================
-router.delete('/:id', authenticated, deleteDonation);
 
 module.exports = router;
