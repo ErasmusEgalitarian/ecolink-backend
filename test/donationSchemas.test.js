@@ -464,11 +464,28 @@ describe('Donation Schema Validation', () => {
     });
 
     describe('BVA - MediaId Validation', () => {
-        it('should reject when mediaId is missing', () => {
-            const invalidDonation = {
+        it('should accept donation without mediaId', () => {
+            const validDonation = {
                 ecopointId: '1',
                 materialType: 'plastic',
                 qtdMaterial: 5
+            };
+
+            const req = mockRequest(validDonation);
+            const res = mockResponse();
+            const middleware = validate(createDonationSchema);
+
+            middleware(req, res, mockNext);
+
+            expect(mockNext).toHaveBeenCalledTimes(1);
+        });
+
+        it('should reject invalid mediaId format when provided', () => {
+            const invalidDonation = {
+                ecopointId: '1',
+                materialType: 'plastic',
+                qtdMaterial: 5,
+                mediaId: 'invalid-id'
             };
 
             const req = mockRequest(invalidDonation);
@@ -478,19 +495,8 @@ describe('Donation Schema Validation', () => {
             middleware(req, res, mockNext);
 
             expect(res.status).toHaveBeenCalledWith(400);
-            expect(res.json).toHaveBeenCalledWith({
-                message: 'Validation error',
-                errors: expect.arrayContaining([
-                    expect.objectContaining({
-                        field: 'mediaId',
-                        message: expect.stringMatching(/Media ID is required|expected string, received undefined/)
-                    })
-                ])
-            });
             expect(mockNext).not.toHaveBeenCalled();
         });
-
-       
     });
 
     describe('Update Donation Schema - BVA', () => {

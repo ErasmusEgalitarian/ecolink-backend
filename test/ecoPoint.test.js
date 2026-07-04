@@ -8,6 +8,8 @@ const {
     enrichLocationWithEcopoints,
     sortEcopointsByStatus
 } = require('../utils/locationHelpers');
+const { normalizeQrCodeFromScan } = require('../utils/qrCodeHelpers');
+const { qrCodeParamSchema } = require('../schemas/ecopointSchemas');
 
 describe('Location Create Schema', () => {
     it('should reject payload with invalid longitude', () => {
@@ -168,5 +170,45 @@ describe('locationHelpers', () => {
         expect(enriched.ecopoints).toHaveLength(2);
         expect(enriched.ecopoints[0].status).toBe('open');
         expect(enriched.ecopoints[1].status).toBe('full');
+    });
+});
+
+describe('qrCodeParamSchema', () => {
+    it('should accept a non-empty qr code', () => {
+        const result = qrCodeParamSchema.safeParse({ qrCode: 'demo-ecolink' });
+        expect(result.success).toBe(true);
+    });
+
+    it('should reject an empty qr code', () => {
+        const result = qrCodeParamSchema.safeParse({ qrCode: '   ' });
+        expect(result.success).toBe(false);
+    });
+});
+
+describe('normalizeQrCodeFromScan', () => {
+    it('should return plain qr codes unchanged', () => {
+        expect(normalizeQrCodeFromScan('bce-plastic')).toBe('bce-plastic');
+    });
+
+    it('should extract qr code from query parameter q', () => {
+        expect(
+            normalizeQrCodeFromScan('https://app.ecolink.com/doacoes/scanner?q=demo-ecolink')
+        ).toBe('demo-ecolink');
+    });
+
+    it('should extract qr code from query parameter qrCode', () => {
+        expect(
+            normalizeQrCodeFromScan('https://app.ecolink.com/scanner?qrCode=icc-main')
+        ).toBe('icc-main');
+    });
+
+    it('should extract qr code from the last URL path segment', () => {
+        expect(
+            normalizeQrCodeFromScan('https://app.ecolink.com/doacoes/scanner/bce-plastic')
+        ).toBe('bce-plastic');
+    });
+
+    it('should trim whitespace from plain codes', () => {
+        expect(normalizeQrCodeFromScan('  icc-main  ')).toBe('icc-main');
     });
 });
