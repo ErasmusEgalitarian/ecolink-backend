@@ -110,6 +110,7 @@ const getAllDonations = async (req, res, next) => {
         const donations = await Donation.find(filters)
             .populate('userId', 'username email')
             .populate('mediaId')
+            .populate(ECOPOINT_WITH_LOCATION_POPULATE)
             .sort({ donationDate: -1 })
             .skip(skip)
             .limit(parseInt(limit))
