@@ -1,20 +1,29 @@
 const mongoose = require('mongoose');
 
-
-
 const EcoPointSchema = new mongoose.Schema(
     {
-        name: { type: String, required: true, trim: true },
-        address: { type: String, required: true, trim: true },
-        coordinates: {type: {type: String, required: true, default: 'Point'}, coordinates: {type: [Number],required: true}},
-        acceptedMaterials: {type: [String], enum: ['plastic', 'metal', 'glass', 'paper']},
-        status: {type: String,enum: ['Open', 'Closed', 'Full'],default: 'Open'},
-        operatingHours: { type: String, default: '' },
-        isActive: { type: Boolean, default: true }
+        locationId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Location',
+            required: true
+        },
+        label: { type: String, required: true, trim: true },
+        acceptedMaterials: {
+            type: [String],
+            enum: ['plastic', 'metal', 'glass', 'paper'],
+            required: true
+        },
+        status: {
+            type: String,
+            enum: ['open', 'full', 'closed', 'offline'],
+            default: 'open'
+        },
+        qrCode: { type: String, trim: true, default: '' }
     },
     { timestamps: true }
 );
 
-EcoPointSchema.index({ coordinates: '2dsphere' });
+EcoPointSchema.index({ locationId: 1 });
+EcoPointSchema.index({ qrCode: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('EcoPoint', EcoPointSchema, 'ecopoints');

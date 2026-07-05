@@ -24,10 +24,9 @@ const createDonationSchema = z.object({
     .positive('Quantity must be a positive number')
     .int('Quantity must be an integer'),
     
-    mediaId: z.string({
-        required_error: 'Media ID is required'
-    })
-    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid Media ID format')
+    mediaId: z.string()
+        .regex(/^[0-9a-fA-F]{24}$/, 'Invalid Media ID format')
+        .optional()
 });
 
 // updateDonationSchema isn't on donation routes yet, but prepared for future use

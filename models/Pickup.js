@@ -1,10 +1,8 @@
 const mongoose = require('mongoose');
 
 const PickupSchema = new mongoose.Schema({
-    donationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Donation', required: true },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // who registered the waste
     ecopointId: { type: mongoose.Schema.Types.ObjectId, ref: 'EcoPoint', required: true },
-    pickupBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // who accepted the pickup
+    pickupBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // who accepted/collected the ecopoint
     pickupStatus: { type: String, enum: ['pending', 'accepted', 'completed', 'cancelled'], default: 'pending' },
     confirmedAt: { type: Date, default: null },
     completedAt: { type: Date, default: null },
@@ -12,7 +10,15 @@ const PickupSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
-PickupSchema.index({ userId: 1, createdAt: -1 });
-PickupSchema.index({ ecopointId: 1 });
+PickupSchema.index({ pickupStatus: 1, createdAt: -1 });
+PickupSchema.index({ pickupBy: 1, confirmedAt: -1 });
+
+PickupSchema.index(
+    { ecopointId: 1 },
+    {
+        unique: true,
+        partialFilterExpression: { pickupStatus: 'pending' }
+    }
+);
 
 module.exports = mongoose.model('Pickup', PickupSchema, 'pickups');

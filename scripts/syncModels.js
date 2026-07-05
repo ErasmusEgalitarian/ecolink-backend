@@ -9,6 +9,7 @@ const models = [
   require('../models/Donation'),
   require('../models/Media'),
   require('../models/Pickup'),
+  require('../models/Location'),
   require('../models/EcoPoint'),
 ];
 

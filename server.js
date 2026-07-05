@@ -19,6 +19,13 @@ if (!fs.existsSync(uploadDir)) {
 
 const app = express();
 
+// Em desenvolvimento o app costuma rodar atrás de um proxy (ex.: localtunnel),
+// que adiciona o header X-Forwarded-For. Sem isso o express-rate-limit lança
+// ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+if (process.env.NODE_ENV === "development") {
+  app.set("trust proxy", 1);
+}
+
 app.get("/api/health", (_req, res) => {
   res.status(200).json({ status: "ok" });
 });
@@ -66,6 +73,12 @@ app.use("/api/roles", rolesRoutes);
 const pickupRoutes = require("./routes/pickups");
 app.use("/api/pickups", pickupRoutes);
 
+const ecopointRoutes = require("./routes/ecopoints");
+app.use("/api/ecopoints", ecopointRoutes);
+
+const locationRoutes = require("./routes/locations");
+app.use("/api/locations", locationRoutes);
+
 // Import Error Handlers (DEVE SER DEPOIS DAS ROTAS)
 const { errorHandler, notFoundHandler } = require("./middlewares/errorHandler");
 
@@ -81,6 +94,7 @@ connectDB();
 if (process.env.NODE_ENV === "development") {
   require("./seeds/rolesSeeder");
   require("./seeds/semestersSeeder");
+  require("./seeds/locationsSeeder");
 }
 
 module.exports = app;
