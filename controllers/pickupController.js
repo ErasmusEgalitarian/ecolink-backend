@@ -1,5 +1,6 @@
 const Pickup = require('../models/Pickup');
 const Donation = require('../models/Donation');
+const EcoPoint = require('../models/EcoPoint');
 const User = require('../models/User');
 const { ECOPOINT_WITH_LOCATION_POPULATE } = require('../utils/locationHelpers');
 
@@ -312,6 +313,7 @@ const completePickup = async (req, res, next) => {
         
         await Promise.all([
             Donation.updateMany({ pickupId: pickup._id }, { $set: { status: 'collected' } }),
+            EcoPoint.updateOne({ _id: pickup.ecopointId }, { $set: { status: 'open' } }),
             ...[...creditByUser.entries()].map(([userId, credit]) =>
                 User.updateOne(
                     { _id: userId },
