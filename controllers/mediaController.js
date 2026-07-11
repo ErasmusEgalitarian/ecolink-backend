@@ -1,8 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 const Media = require('../models/Media');
+const MediaDeletionLog = require('../models/MediaDeletionLog');
 
 const uploadDir = path.join(__dirname, '..', 'uploads');
+
+const activeMediaFilter = {
+    $or: [{ deleted: false }, { deleted: { $exists: false } }],
+};
 
 /**
  * @description Upload de arquivo
@@ -54,7 +59,7 @@ const getAllMedia = async (req, res, next) => {
     try {
         const { category, date, page = 1, limit = 20 } = req.query;
 
-        const filters = {};
+        const filters = { ...activeMediaFilter };
         if (category) filters.category = category;
         if (date) filters.uploadedAt = { $gte: new Date(date) };
         
@@ -116,7 +121,7 @@ const getMediaById = async (req, res, next) => {
     try {
         const { id } = req.params;
         
-        const media = await Media.findById(id).lean();
+        const media = await Media.findOne({ _id: id, ...activeMediaFilter }).lean();
         
         if (!media) {
             return res.status(404).json({
@@ -159,7 +164,7 @@ const updateMedia = async (req, res, next) => {
         const { id } = req.params;
         const { category } = req.body;
         
-        const media = await Media.findById(id);
+        const media = await Media.findOne({ _id: id, ...activeMediaFilter });
         
         if (!media) {
             return res.status(404).json({
@@ -196,7 +201,7 @@ const deleteMedia = async (req, res, next) => {
     try {
         const { id } = req.params;
         
-        const media = await Media.findById(id);
+        const media = await Media.findOne({ _id: id, ...activeMediaFilter });
         
         if (!media) {
             return res.status(404).json({
@@ -205,7 +210,6 @@ const deleteMedia = async (req, res, next) => {
             });
         }
         
-        // Verificar se a mídia está sendo usada em alguma doação
         const Donation = require('../models/Donation');
         const donationUsingMedia = await Donation.findOne({ mediaId: id });
         
@@ -215,19 +219,34 @@ const deleteMedia = async (req, res, next) => {
                 message: 'Cannot delete media that is being used in a donation'
             });
         }
-        
-        // Deletar arquivo do disco
-        const filePath = path.join(uploadDir, media.filename);
+
+        const relativePath = media.path
+            ? media.path.replace(/^.*uploads[\\/]/, '')
+            : media.filename;
+        const filePath = path.join(uploadDir, relativePath.split('/').pop());
+
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
         }
-        
-        // Deletar registro do banco
-        await Media.findByIdAndDelete(id);
+
+        media.deleted = true;
+        media.deletedAt = new Date();
+        await media.save();
+
+        await MediaDeletionLog.create({
+            filename: media.filename,
+            path: relativePath,
+            type: media.type,
+            category: media.category,
+            reason: 'manual',
+            deletedByUserId: req.user?.id || null,
+            mediaId: media._id,
+            originalUploadedAt: media.uploadedAt || null,
+        });
         
         res.status(200).json({
             success: true,
-            message: 'Media and file deleted successfully'
+            message: 'Media marked as deleted and file removed successfully'
         });
     } catch (err) {
         console.error('Delete media error:', err);

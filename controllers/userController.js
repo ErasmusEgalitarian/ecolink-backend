@@ -1,12 +1,38 @@
 const bcrypt = require('bcrypt');
+const fs = require('fs');
+const path = require('path');
 const User = require('../models/User');
+const { resolveImageUrl } = require('../utils/publicUrl');
+const { getProfileAvatarRelativePath } = require('../utils/profileHelpers');
+const { deleteUserAccount } = require('../utils/accountDeletionHelpers');
 
-const anonymizeUserDonations = async (userId) => {
-    const Donation = require('../models/Donation');
-    await Donation.updateMany(
-        { userId },
-        { $set: { userId: null, anonymized: true } }
-    );
+const getAvatarVersion = (user) => {
+    if (user?.avatarUpdatedAt) {
+        return new Date(user.avatarUpdatedAt).getTime();
+    }
+
+    if (!user?.avatarPath) {
+        return null;
+    }
+
+    try {
+        const absolutePath = path.join(__dirname, '..', 'uploads', user.avatarPath);
+        return fs.statSync(absolutePath).mtimeMs;
+    } catch {
+        return Date.now();
+    }
+};
+
+const serializeUserProfile = (user, req) => {
+    const data = user?.toObject ? user.toObject() : { ...user };
+    const baseAvatarUrl = resolveImageUrl(data.avatarPath, req);
+    const avatarVersion = getAvatarVersion(data);
+
+    data.avatarUrl = baseAvatarUrl && avatarVersion
+        ? `${baseAvatarUrl}?v=${avatarVersion}`
+        : baseAvatarUrl || '';
+
+    return data;
 };
 
 /**
@@ -30,7 +56,7 @@ const getMyProfile = async (req, res, next) => {
         
         res.status(200).json({
             success: true,
-            data: user
+            data: serializeUserProfile(user, req)
         });
     } catch (err) {
         console.error('Get user details error:', err);
@@ -72,7 +98,7 @@ const getUserById = async (req, res, next) => {
         
         res.status(200).json({
             success: true,
-            data: user
+            data: serializeUserProfile(user, req)
         });
     } catch (err) {
         console.error('Get user by ID error:', err);
@@ -144,8 +170,7 @@ const updateMyProfile = async (req, res, next) => {
             });
         }
         
-        // Verificar se username já existe (se está sendo alterado)
-        if (username && username !== user.username) {
+        if (username !== undefined && username !== user.username) {
             const existingUser = await User.findOne({ username });
             if (existingUser) {
                 return res.status(400).json({ 
@@ -156,8 +181,13 @@ const updateMyProfile = async (req, res, next) => {
             user.username = username;
         }
         
-        if (address) user.address = address;
-        if (phone) user.phone = phone;
+        if (address !== undefined) {
+            user.address = address;
+        }
+
+        if (phone !== undefined) {
+            user.phone = String(phone).replace(/\D/g, '');
+        }
         
         await user.save();
         
@@ -168,10 +198,52 @@ const updateMyProfile = async (req, res, next) => {
         res.status(200).json({
             success: true,
             message: 'Profile updated successfully',
-            data: updatedUser
+            data: serializeUserProfile(updatedUser, req)
         });
     } catch (err) {
         console.error('Update profile error:', err);
+        next(err);
+    }
+};
+
+/**
+ * @description Upload da foto de perfil do usuário autenticado
+ * @route POST /api/users/me/avatar
+ * @access Private
+ */
+const uploadProfileAvatar = async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'Profile image not sent',
+            });
+        }
+
+        const user = req.profileUser || await User.findById(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found',
+            });
+        }
+
+        user.avatarPath = getProfileAvatarRelativePath(req.file.filename);
+        user.avatarUpdatedAt = new Date();
+        await user.save();
+
+        const updatedUser = await User.findById(req.user.id)
+            .select('-password -__v')
+            .populate('roleId');
+
+        res.status(200).json({
+            success: true,
+            message: 'Profile image uploaded successfully',
+            data: serializeUserProfile(updatedUser, req),
+        });
+    } catch (err) {
+        console.error('Upload profile avatar error:', err);
         next(err);
     }
 };
@@ -235,13 +307,11 @@ const deleteMyAccount = async (req, res, next) => {
             });
         }
         
-        await anonymizeUserDonations(req.user.id);
-        
-        await User.findByIdAndDelete(req.user.id);
+        await deleteUserAccount(user, { deletedByUserId: req.user.id });
         
         res.status(200).json({
             success: true,
-            message: 'Account and all associated data deleted successfully'
+            message: 'Account deleted successfully. Donations were anonymized and kept in the system.'
         });
     } catch (err) {
         console.error('Delete account error:', err);
@@ -283,13 +353,11 @@ const deleteUserById = async (req, res, next) => {
             });
         }
         
-        await anonymizeUserDonations(id);
-        
-        await User.findByIdAndDelete(id);
+        await deleteUserAccount(user, { deletedByUserId: req.user.id });
         
         res.status(200).json({
             success: true,
-            message: 'User and all associated data deleted successfully'
+            message: 'User deleted successfully. Donations were anonymized and kept in the system.'
         });
     } catch (err) {
         console.error('Delete user by ID error:', err);
@@ -302,6 +370,7 @@ module.exports = {
     getUserById,
     getAllUsers,
     updateMyProfile,
+    uploadProfileAvatar,
     changePassword,
     deleteMyAccount,
     deleteUserById

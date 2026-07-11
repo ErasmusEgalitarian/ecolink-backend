@@ -13,13 +13,13 @@ const updateUserProfileSchema = z.object({
         .optional(),
     
     address: z.string()
-        .min(5, 'Address must be at least 5 characters long')
         .trim()
         .optional(),
     
-    phone: z.string()
-        .regex(phoneRegex, 'Phone must have 10 or 11 digits')
-        .optional()
+    phone: z.union([
+        z.string().regex(phoneRegex, 'Phone must have 10 or 11 digits'),
+        z.literal(''),
+    ]).optional()
 }).refine(data => Object.keys(data).length > 0, {
     message: 'At least one field must be provided for update'
 });

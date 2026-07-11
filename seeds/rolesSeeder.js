@@ -1,11 +1,5 @@
 const Role = require('../models/Role');
-const mongoose = require('mongoose');
-
-const ROLE_IDS = {
-  ADMIN: new mongoose.Types.ObjectId('683607d382cf7e288f7ca45e'),
-  EDITOR: new mongoose.Types.ObjectId('683607d382cf7e288f7ca45f'),
-  VIEWER: new mongoose.Types.ObjectId('683607d382cf7e288f7ca460')
-};
+const { ROLE_IDS } = require('../constants/roles');
 
 const createInitialRoles = async () => {
   try {

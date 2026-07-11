@@ -5,10 +5,27 @@ const mediaSchema = new mongoose.Schema({
   path: String,
   type: String,
   category: String,
+  purpose: {
+    type: String,
+    enum: ['donation', 'content_cover', 'content_inline'],
+    default: 'donation',
+  },
+  articleSlug: {
+    type: String,
+    trim: true,
+  },
+  deleted: {
+    type: Boolean,
+    default: false,
+  },
+  deletedAt: {
+    type: Date,
+    default: null,
+  },
   uploadedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 module.exports = mongoose.model('Media', mediaSchema);

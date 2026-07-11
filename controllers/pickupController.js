@@ -1,7 +1,9 @@
 const Pickup = require('../models/Pickup');
 const Donation = require('../models/Donation');
 const User = require('../models/User');
+const EcoPoint = require('../models/EcoPoint');
 const { ECOPOINT_WITH_LOCATION_POPULATE } = require('../utils/locationHelpers');
+const { cancelPickupWithReplacement } = require('../utils/pickupHelpers');
 
 const getPickupDonations = (pickupId) =>
     Donation.find({ pickupId })
@@ -9,6 +11,18 @@ const getPickupDonations = (pickupId) =>
         .populate('mediaId')
         .sort({ donationDate: -1 })
         .lean();
+
+const getPickupDonationsForDetail = (pickup) => {
+    if (pickup.pickupStatus === 'cancelled' && pickup.cancelledDonationIds?.length) {
+        return Donation.find({ _id: { $in: pickup.cancelledDonationIds } })
+            .populate('userId', 'username email phone address')
+            .populate('mediaId')
+            .sort({ donationDate: -1 })
+            .lean();
+    }
+
+    return getPickupDonations(pickup._id);
+};
 
 /**
  * @description Lista todos os pickups (com filtros)
@@ -194,7 +208,7 @@ const getPickupById = async (req, res, next) => {
             });
         }
         
-        pickup.donations = await getPickupDonations(pickup._id);
+        pickup.donations = await getPickupDonationsForDetail(pickup);
         
         res.status(200).json({
             success: true,
@@ -300,24 +314,30 @@ const completePickup = async (req, res, next) => {
         
         const donations = await Donation.find({ pickupId: pickup._id });
         
-        const creditByUser = new Map();
+        const wasteSavedByDonor = new Map();
         for (const donation of donations) {
             if (!donation.userId) continue;
             const key = donation.userId.toString();
-            const acc = creditByUser.get(key) || { wasteSaved: 0, totalPickups: 0 };
-            acc.wasteSaved += donation.qtdMaterial;
-            acc.totalPickups += 1;
-            creditByUser.set(key, acc);
+            wasteSavedByDonor.set(
+                key,
+                (wasteSavedByDonor.get(key) || 0) + donation.qtdMaterial,
+            );
+        }
+
+        const userUpdates = [...wasteSavedByDonor.entries()].map(([userId, wasteSaved]) =>
+            User.updateOne({ _id: userId }, { $inc: { wasteSaved } }),
+        );
+
+        if (pickup.pickupBy) {
+            userUpdates.push(
+                User.updateOne({ _id: pickup.pickupBy }, { $inc: { totalPickups: 1 } }),
+            );
         }
         
         await Promise.all([
             Donation.updateMany({ pickupId: pickup._id }, { $set: { status: 'collected' } }),
-            ...[...creditByUser.entries()].map(([userId, credit]) =>
-                User.updateOne(
-                    { _id: userId },
-                    { $inc: { totalPickups: credit.totalPickups, wasteSaved: credit.wasteSaved } }
-                )
-            )
+            EcoPoint.findByIdAndUpdate(pickup.ecopointId, { status: 'open' }),
+            ...userUpdates,
         ]);
         
         await pickup.populate([ECOPOINT_WITH_LOCATION_POPULATE, 'pickupBy']);
@@ -381,22 +401,16 @@ const cancelPickup = async (req, res, next) => {
             });
         }
         
-        pickup.pickupStatus = 'cancelled';
-        pickup.cancelledAt = new Date();
-        
-        await pickup.save();
-        
-        await Donation.updateMany(
-            { pickupId: pickup._id },
-            { $set: { pickupId: null, status: 'pending' } }
-        );
-        
+        const replacementPickup = await cancelPickupWithReplacement(pickup);
+
         await pickup.populate([ECOPOINT_WITH_LOCATION_POPULATE, 'pickupBy']);
-        
+        await replacementPickup.populate(ECOPOINT_WITH_LOCATION_POPULATE);
+
         res.status(200).json({
             success: true,
             message: 'Pickup cancelled successfully',
-            data: pickup
+            data: pickup,
+            replacementPickup,
         });
     } catch (error) {
         console.error('Error cancelling pickup:', error);
@@ -432,24 +446,42 @@ const updatePickupStatus = async (req, res, next) => {
             });
         }
         
-        pickup.pickupStatus = pickupStatus;
-        
-        if (pickupStatus === 'completed' && !pickup.completedAt) {
-            pickup.completedAt = new Date();
+        const previousStatus = pickup.pickupStatus;
+        let replacementPickup = null;
+
+        if (
+            pickupStatus === 'cancelled'
+            && previousStatus !== 'cancelled'
+            && previousStatus !== 'completed'
+        ) {
+            replacementPickup = await cancelPickupWithReplacement(pickup);
+        } else {
+            pickup.pickupStatus = pickupStatus;
+
+            if (pickupStatus === 'completed' && !pickup.completedAt) {
+                pickup.completedAt = new Date();
+            }
+
+            if (pickupStatus === 'cancelled' && !pickup.cancelledAt) {
+                pickup.cancelledAt = new Date();
+            }
+
+            await pickup.save();
         }
-        
-        if (pickupStatus === 'cancelled' && !pickup.cancelledAt) {
-            pickup.cancelledAt = new Date();
+
+        const responsePickup = replacementPickup || pickup;
+
+        await responsePickup.populate([ECOPOINT_WITH_LOCATION_POPULATE, 'pickupBy']);
+
+        if (replacementPickup) {
+            await pickup.populate([ECOPOINT_WITH_LOCATION_POPULATE, 'pickupBy']);
         }
-        
-        await pickup.save();
-        
-        await pickup.populate([ECOPOINT_WITH_LOCATION_POPULATE, 'pickupBy']);
-        
+
         res.status(200).json({
             success: true,
             message: 'Pickup status updated successfully',
-            data: pickup
+            data: replacementPickup ? pickup : responsePickup,
+            ...(replacementPickup ? { replacementPickup } : {}),
         });
     } catch (error) {
         console.error('Error updating pickup status:', error);

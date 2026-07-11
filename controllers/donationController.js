@@ -1,24 +1,9 @@
 const Donation = require('../models/Donation');
-const Pickup = require('../models/Pickup');
 const Media = require('../models/Media');
 const User = require('../models/User');
 const EcoPoint = require('../models/EcoPoint');
 const { ECOPOINT_WITH_LOCATION_POPULATE } = require('../utils/locationHelpers');
-
-const getOrCreateOpenPickup = async (ecopointId) => {
-    for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-            return await Pickup.findOneAndUpdate(
-                { ecopointId, pickupStatus: 'pending' },
-                { $setOnInsert: { ecopointId, pickupStatus: 'pending', createdAt: new Date() } },
-                { new: true, upsert: true }
-            );
-        } catch (error) {
-            if (error.code === 11000 && attempt === 0) continue;
-            throw error;
-        }
-    }
-};
+const { getOrCreateOpenPickup } = require('../utils/pickupHelpers');
 
 /**
  * @description Cria uma nova doação e a anexa ao lote de coleta aberto do ecoponto
@@ -62,6 +47,7 @@ const createDonation = async (req, res, next) => {
             });
         }
 
+        // Reutiliza a coleta pendente existente; só cria uma nova se não houver nenhuma.
         const pickup = await getOrCreateOpenPickup(ecopointId);
 
         const donation = new Donation({

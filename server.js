@@ -67,6 +67,9 @@ const mediaRoutes = require("./routes/media");
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/media", mediaRoutes);
 
+const contentRoutes = require("./routes/content");
+app.use("/api/content", contentRoutes);
+
 const rolesRoutes = require("./routes/roles");
 app.use("/api/roles", rolesRoutes);
 
@@ -95,6 +98,7 @@ if (process.env.NODE_ENV === "development") {
   require("./seeds/rolesSeeder");
   require("./seeds/semestersSeeder");
   require("./seeds/locationsSeeder");
+  require("./seeds/contentSeeder");
 }
 
 module.exports = app;

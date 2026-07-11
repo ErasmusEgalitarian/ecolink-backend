@@ -22,7 +22,6 @@ const UserSchema = new mongoose.Schema({
     cpf: {
         type: String,
         required: true,
-        unique: true,
         validate: {
             validator: function (v) {
                 return isValidCPF(v);
@@ -39,6 +38,8 @@ const UserSchema = new mongoose.Schema({
     wasteSaved: { type: Number, default: 0 }, 
     carbonCredit: { type: Number, default: 0 }, 
     totalPickups: { type: Number, default: 0 },
+    avatarPath: { type: String, default: null },
+    avatarUpdatedAt: { type: Date, default: null },
 
     emailVerified: { type: Boolean, default: false }
 });
