@@ -62,17 +62,6 @@ const register = async (req, res, next) => {
         const existingUserByEmail = await User.findOne({ email });
         if (existingUserByEmail) {
             if (existingUserByEmail.emailVerified !== true) {
-                // Only the original registrant (matching CPF) may trigger a resend.
-                // A different CPF means a different person — block to prevent account takeover.
-                if (existingUserByEmail.cpf !== cpf) {
-                    return res.status(409).json({
-                        success: false,
-                        code: 'EMAIL_ALREADY_REGISTERED',
-                        field: 'email',
-                        message: 'Email already registered'
-                    });
-                }
-
                 await sendNewVerificationCode(existingUserByEmail);
 
                 return res.status(200).json({
@@ -87,16 +76,6 @@ const register = async (req, res, next) => {
                 code: 'EMAIL_ALREADY_REGISTERED',
                 field: 'email',
                 message: 'Email already registered'
-            });
-        }
-
-        const existingUserByCpf = await User.findOne({ cpf });
-        if (existingUserByCpf) {
-            return res.status(409).json({
-                success: false,
-                code: 'CPF_ALREADY_REGISTERED',
-                field: 'cpf',
-                message: 'CPF already registered'
             });
         }
 
@@ -124,9 +103,7 @@ const register = async (req, res, next) => {
     } catch (err) {
         if (err.code === 11000) {
             const duplicatedField = Object.keys(err.keyPattern || err.keyValue || {})[0] || 'field';
-            const duplicatedFieldLabel = duplicatedField === 'cpf'
-                ? 'CPF'
-                : duplicatedField.charAt(0).toUpperCase() + duplicatedField.slice(1);
+            const duplicatedFieldLabel = duplicatedField.charAt(0).toUpperCase() + duplicatedField.slice(1);
 
             return res.status(409).json({
                 success: false,

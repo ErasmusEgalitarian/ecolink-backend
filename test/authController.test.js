@@ -125,34 +125,6 @@ describe('Auth Controller', () => {
         });
     });
 
-    it('should return 409 if CPF is already registered', async () => {
-        req.body = {
-            username: 'john_doe',
-            email: 'john@aluno.unb.br',
-            password: 'SecurePass@123',
-            address: 'Rua Test, 123',
-            phone: '11987654321',
-            cpf: '52998224725'
-        };
-
-        User.findOne
-            .mockResolvedValueOnce(null)
-            .mockResolvedValueOnce({
-                email: 'another@aluno.unb.br',
-                cpf: '52998224725'
-            });
-
-        await register(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(409);
-        expect(res.json).toHaveBeenCalledWith({
-            success: false,
-            code: 'CPF_ALREADY_REGISTERED',
-            field: 'cpf',
-            message: 'CPF already registered'
-        });
-    });
-
     // ======================
     // LOGIN
     // ======================
