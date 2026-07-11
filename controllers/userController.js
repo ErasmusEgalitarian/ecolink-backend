@@ -1,5 +1,13 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
+const { resolveImageUrl } = require('../utils/publicUrl');
+const { getProfileAvatarRelativePath } = require('../utils/profileHelpers');
+
+const serializeUserProfile = (user, req) => {
+    const data = user?.toObject ? user.toObject() : { ...user };
+    data.avatarUrl = resolveImageUrl(data.avatarPath, req);
+    return data;
+};
 
 const anonymizeUserDonations = async (userId) => {
     const Donation = require('../models/Donation');
@@ -30,7 +38,7 @@ const getMyProfile = async (req, res, next) => {
         
         res.status(200).json({
             success: true,
-            data: user
+            data: serializeUserProfile(user, req)
         });
     } catch (err) {
         console.error('Get user details error:', err);
@@ -72,7 +80,7 @@ const getUserById = async (req, res, next) => {
         
         res.status(200).json({
             success: true,
-            data: user
+            data: serializeUserProfile(user, req)
         });
     } catch (err) {
         console.error('Get user by ID error:', err);
@@ -144,8 +152,7 @@ const updateMyProfile = async (req, res, next) => {
             });
         }
         
-        // Verificar se username já existe (se está sendo alterado)
-        if (username && username !== user.username) {
+        if (username !== undefined && username !== user.username) {
             const existingUser = await User.findOne({ username });
             if (existingUser) {
                 return res.status(400).json({ 
@@ -156,8 +163,13 @@ const updateMyProfile = async (req, res, next) => {
             user.username = username;
         }
         
-        if (address) user.address = address;
-        if (phone) user.phone = phone;
+        if (address !== undefined) {
+            user.address = address;
+        }
+
+        if (phone !== undefined) {
+            user.phone = String(phone).replace(/\D/g, '');
+        }
         
         await user.save();
         
@@ -168,10 +180,51 @@ const updateMyProfile = async (req, res, next) => {
         res.status(200).json({
             success: true,
             message: 'Profile updated successfully',
-            data: updatedUser
+            data: serializeUserProfile(updatedUser, req)
         });
     } catch (err) {
         console.error('Update profile error:', err);
+        next(err);
+    }
+};
+
+/**
+ * @description Upload da foto de perfil do usuário autenticado
+ * @route POST /api/users/me/avatar
+ * @access Private
+ */
+const uploadProfileAvatar = async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'Profile image not sent',
+            });
+        }
+
+        const user = req.profileUser || await User.findById(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found',
+            });
+        }
+
+        user.avatarPath = getProfileAvatarRelativePath(req.file.filename);
+        await user.save();
+
+        const updatedUser = await User.findById(req.user.id)
+            .select('-password -__v')
+            .populate('roleId');
+
+        res.status(200).json({
+            success: true,
+            message: 'Profile image uploaded successfully',
+            data: serializeUserProfile(updatedUser, req),
+        });
+    } catch (err) {
+        console.error('Upload profile avatar error:', err);
         next(err);
     }
 };
@@ -302,6 +355,7 @@ module.exports = {
     getUserById,
     getAllUsers,
     updateMyProfile,
+    uploadProfileAvatar,
     changePassword,
     deleteMyAccount,
     deleteUserById

@@ -9,10 +9,15 @@ const {
     getUserById,
     getAllUsers,
     updateMyProfile,
+    uploadProfileAvatar,
     changePassword,
     deleteMyAccount,
     deleteUserById
 } = require('../controllers/userController');
+const {
+    loadProfileMatricula,
+    profileImageUpload,
+} = require('../middlewares/profileImageUpload');
 
 const authenticated = [verifyToken, authenticatedUserRateLimiter];
 
@@ -23,6 +28,13 @@ router.get('/', authenticated, getAllUsers);
 
 // ==================== UPDATE ====================
 router.put('/me', authenticated, validate(updateUserProfileSchema), updateMyProfile);
+router.post(
+    '/me/avatar',
+    authenticated,
+    loadProfileMatricula,
+    profileImageUpload.single('file'),
+    uploadProfileAvatar,
+);
 router.put('/me/password', authenticated, validate(changePasswordSchema), changePassword);
 
 // ==================== DELETE ====================

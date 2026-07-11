@@ -39,6 +39,7 @@ const UserSchema = new mongoose.Schema({
     wasteSaved: { type: Number, default: 0 }, 
     carbonCredit: { type: Number, default: 0 }, 
     totalPickups: { type: Number, default: 0 },
+    avatarPath: { type: String, default: null },
 
     emailVerified: { type: Boolean, default: false }
 });
