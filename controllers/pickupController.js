@@ -314,25 +314,30 @@ const completePickup = async (req, res, next) => {
         
         const donations = await Donation.find({ pickupId: pickup._id });
         
-        const creditByUser = new Map();
+        const wasteSavedByDonor = new Map();
         for (const donation of donations) {
             if (!donation.userId) continue;
             const key = donation.userId.toString();
-            const acc = creditByUser.get(key) || { wasteSaved: 0, totalPickups: 0 };
-            acc.wasteSaved += donation.qtdMaterial;
-            acc.totalPickups += 1;
-            creditByUser.set(key, acc);
+            wasteSavedByDonor.set(
+                key,
+                (wasteSavedByDonor.get(key) || 0) + donation.qtdMaterial,
+            );
+        }
+
+        const userUpdates = [...wasteSavedByDonor.entries()].map(([userId, wasteSaved]) =>
+            User.updateOne({ _id: userId }, { $inc: { wasteSaved } }),
+        );
+
+        if (pickup.pickupBy) {
+            userUpdates.push(
+                User.updateOne({ _id: pickup.pickupBy }, { $inc: { totalPickups: 1 } }),
+            );
         }
         
         await Promise.all([
             Donation.updateMany({ pickupId: pickup._id }, { $set: { status: 'collected' } }),
             EcoPoint.findByIdAndUpdate(pickup.ecopointId, { status: 'open' }),
-            ...[...creditByUser.entries()].map(([userId, credit]) =>
-                User.updateOne(
-                    { _id: userId },
-                    { $inc: { totalPickups: credit.totalPickups, wasteSaved: credit.wasteSaved } }
-                )
-            )
+            ...userUpdates,
         ]);
         
         await pickup.populate([ECOPOINT_WITH_LOCATION_POPULATE, 'pickupBy']);
