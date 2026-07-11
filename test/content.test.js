@@ -3,6 +3,8 @@ const {
     resolveLocalizedValue,
     localizeBlock,
     getLocalizedCategories,
+    buildContentMediaRelativePath,
+    resolveMediaUrl,
 } = require('../utils/contentHelpers');
 const { canManageContent } = require('../middlewares/contentEditorMiddleware');
 const { EDITOR_ROLE_ID, VIEWER_ROLE_ID } = require('../constants/roles');
@@ -34,6 +36,37 @@ describe('contentHelpers', () => {
         }, 'en', new Map());
 
         expect(block.content).toBe('Text EN');
+    });
+
+    it('builds content media path from article slug and filename', () => {
+        expect(buildContentMediaRelativePath('reciclagem-basica', 'abc123.jpg'))
+            .toBe('content/reciclagem-basica/abc123.jpg');
+        expect(buildContentMediaRelativePath('', 'abc123.jpg')).toBe('');
+        expect(buildContentMediaRelativePath('reciclagem-basica', '')).toBe('');
+    });
+
+    it('resolves content media url without stored path', () => {
+        const req = { protocol: 'http', get: () => 'localhost:5000' };
+        const url = resolveMediaUrl({
+            filename: 'abc123.jpg',
+            articleSlug: 'reciclagem-basica',
+            category: 'content',
+            purpose: 'content_inline',
+        }, req);
+
+        expect(url).toBe('http://localhost:5000/uploads/content/reciclagem-basica/abc123.jpg');
+    });
+
+    it('falls back to legacy path for old content media records', () => {
+        const req = { protocol: 'http', get: () => 'localhost:5000' };
+        const url = resolveMediaUrl({
+            filename: 'abc123.jpg',
+            path: 'content/old-slug/abc123.jpg',
+            category: 'content',
+            purpose: 'content_cover',
+        }, req);
+
+        expect(url).toBe('http://localhost:5000/uploads/content/old-slug/abc123.jpg');
     });
 });
 

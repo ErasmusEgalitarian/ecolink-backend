@@ -9,6 +9,7 @@ const {
     buildMediaMap,
     localizeArticle,
     getLocalizedCategories,
+    buildContentMediaRelativePath,
 } = require('../utils/contentHelpers');
 
 const ensureMediaExists = async (mediaId) => {
@@ -193,17 +194,17 @@ const uploadContentImage = async (req, res, next) => {
         const purpose = (req.body.purpose || req.query.purpose) === 'cover'
             ? 'content_cover'
             : 'content_inline';
-        const relativePath = `content/${slug}/${req.file.filename}`;
 
         const media = await Media.create({
             _id: req.generatedMediaId,
             filename: req.file.filename,
-            path: relativePath,
             type: req.file.mimetype,
             category: 'content',
             purpose,
             articleSlug: slug,
         });
+
+        const relativePath = buildContentMediaRelativePath(slug, req.file.filename);
 
         res.status(201).json({
             success: true,
@@ -212,7 +213,6 @@ const uploadContentImage = async (req, res, next) => {
                 id: media._id,
                 mediaId: media._id,
                 url: getUploadUrl(relativePath, req),
-                path: relativePath,
             },
         });
     } catch (error) {

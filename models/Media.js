@@ -14,6 +14,14 @@ const mediaSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  deleted: {
+    type: Boolean,
+    default: false,
+  },
+  deletedAt: {
+    type: Date,
+    default: null,
+  },
   uploadedAt: {
     type: Date,
     default: Date.now,

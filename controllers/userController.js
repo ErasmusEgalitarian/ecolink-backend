@@ -4,6 +4,7 @@ const path = require('path');
 const User = require('../models/User');
 const { resolveImageUrl } = require('../utils/publicUrl');
 const { getProfileAvatarRelativePath } = require('../utils/profileHelpers');
+const { deleteUserAccount } = require('../utils/accountDeletionHelpers');
 
 const getAvatarVersion = (user) => {
     if (user?.avatarUpdatedAt) {
@@ -32,14 +33,6 @@ const serializeUserProfile = (user, req) => {
         : baseAvatarUrl || '';
 
     return data;
-};
-
-const anonymizeUserDonations = async (userId) => {
-    const Donation = require('../models/Donation');
-    await Donation.updateMany(
-        { userId },
-        { $set: { userId: null, anonymized: true } }
-    );
 };
 
 /**
@@ -314,13 +307,11 @@ const deleteMyAccount = async (req, res, next) => {
             });
         }
         
-        await anonymizeUserDonations(req.user.id);
-        
-        await User.findByIdAndDelete(req.user.id);
+        await deleteUserAccount(user, { deletedByUserId: req.user.id });
         
         res.status(200).json({
             success: true,
-            message: 'Account and all associated data deleted successfully'
+            message: 'Account deleted successfully. Donations were anonymized and kept in the system.'
         });
     } catch (err) {
         console.error('Delete account error:', err);
@@ -362,13 +353,11 @@ const deleteUserById = async (req, res, next) => {
             });
         }
         
-        await anonymizeUserDonations(id);
-        
-        await User.findByIdAndDelete(id);
+        await deleteUserAccount(user, { deletedByUserId: req.user.id });
         
         res.status(200).json({
             success: true,
-            message: 'User and all associated data deleted successfully'
+            message: 'User deleted successfully. Donations were anonymized and kept in the system.'
         });
     } catch (err) {
         console.error('Delete user by ID error:', err);

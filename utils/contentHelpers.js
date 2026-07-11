@@ -1,6 +1,56 @@
 const Media = require('../models/Media');
 const { getUploadUrl } = require('./publicUrl');
 
+const CONTENT_MEDIA_PURPOSES = new Set(['content_cover', 'content_inline']);
+
+const buildContentMediaRelativePath = (articleSlug, filename) => {
+    const slug = String(articleSlug || '').trim();
+    const name = String(filename || '').trim();
+
+    if (!slug || !name) {
+        return '';
+    }
+
+    return `content/${slug}/${name}`;
+};
+
+const isContentMedia = (media) =>
+    media?.category === 'content'
+    || CONTENT_MEDIA_PURPOSES.has(media?.purpose);
+
+const resolveMediaUrl = (media, req) => {
+    if (!media) {
+        return '';
+    }
+
+    if (isContentMedia(media)) {
+        const derivedPath = buildContentMediaRelativePath(
+            media.articleSlug,
+            media.filename,
+        );
+
+        if (derivedPath) {
+            return getUploadUrl(derivedPath, req);
+        }
+    }
+
+    // Legacy content records may still have path stored in the database.
+    if (media.path && !media.path.startsWith('/')) {
+        return getUploadUrl(media.path, req);
+    }
+
+    if (media.filename) {
+        return getUploadUrl(media.filename, req);
+    }
+
+    if (media.path) {
+        const normalized = media.path.replace(/^.*uploads[\\/]/, '');
+        return getUploadUrl(normalized, req);
+    }
+
+    return '';
+};
+
 const SUPPORTED_LANGS = ['pt', 'en'];
 const DEFAULT_LANG = 'pt';
 
@@ -45,27 +95,6 @@ const resolveLocalizedValue = (value, lang) => {
     return value.pt?.trim() || value.en?.trim() || '';
 };
 
-const resolveMediaUrl = (media, req) => {
-    if (!media) {
-        return '';
-    }
-
-    if (media.path && !media.path.startsWith('/')) {
-        return getUploadUrl(media.path, req);
-    }
-
-    if (media.filename) {
-        return getUploadUrl(media.filename, req);
-    }
-
-    if (media.path) {
-        const normalized = media.path.replace(/^.*uploads[\\/]/, '');
-        return getUploadUrl(normalized, req);
-    }
-
-    return '';
-};
-
 const collectMediaIds = (article) => {
     const ids = new Set();
 
@@ -95,7 +124,10 @@ const buildMediaMap = async (articles, req) => {
         return new Map();
     }
 
-    const medias = await Media.find({ _id: { $in: [...ids] } }).lean();
+    const medias = await Media.find({
+        _id: { $in: [...ids] },
+        $or: [{ deleted: false }, { deleted: { $exists: false } }],
+    }).lean();
     const map = new Map();
 
     for (const media of medias) {
@@ -190,8 +222,11 @@ module.exports = {
     SUPPORTED_LANGS,
     DEFAULT_LANG,
     CONTENT_CATEGORIES,
+    CONTENT_MEDIA_PURPOSES,
     normalizeLang,
     resolveLocalizedValue,
+    buildContentMediaRelativePath,
+    resolveMediaUrl,
     collectMediaIds,
     buildMediaMap,
     localizeArticle,
