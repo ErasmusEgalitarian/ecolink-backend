@@ -40,6 +40,7 @@ const UserSchema = new mongoose.Schema({
     carbonCredit: { type: Number, default: 0 }, 
     totalPickups: { type: Number, default: 0 },
     avatarPath: { type: String, default: null },
+    avatarUpdatedAt: { type: Date, default: null },
 
     emailVerified: { type: Boolean, default: false }
 });

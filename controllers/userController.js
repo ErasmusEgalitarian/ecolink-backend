@@ -1,11 +1,36 @@
 const bcrypt = require('bcrypt');
+const fs = require('fs');
+const path = require('path');
 const User = require('../models/User');
 const { resolveImageUrl } = require('../utils/publicUrl');
 const { getProfileAvatarRelativePath } = require('../utils/profileHelpers');
 
+const getAvatarVersion = (user) => {
+    if (user?.avatarUpdatedAt) {
+        return new Date(user.avatarUpdatedAt).getTime();
+    }
+
+    if (!user?.avatarPath) {
+        return null;
+    }
+
+    try {
+        const absolutePath = path.join(__dirname, '..', 'uploads', user.avatarPath);
+        return fs.statSync(absolutePath).mtimeMs;
+    } catch {
+        return Date.now();
+    }
+};
+
 const serializeUserProfile = (user, req) => {
     const data = user?.toObject ? user.toObject() : { ...user };
-    data.avatarUrl = resolveImageUrl(data.avatarPath, req);
+    const baseAvatarUrl = resolveImageUrl(data.avatarPath, req);
+    const avatarVersion = getAvatarVersion(data);
+
+    data.avatarUrl = baseAvatarUrl && avatarVersion
+        ? `${baseAvatarUrl}?v=${avatarVersion}`
+        : baseAvatarUrl || '';
+
     return data;
 };
 
@@ -212,6 +237,7 @@ const uploadProfileAvatar = async (req, res, next) => {
         }
 
         user.avatarPath = getProfileAvatarRelativePath(req.file.filename);
+        user.avatarUpdatedAt = new Date();
         await user.save();
 
         const updatedUser = await User.findById(req.user.id)
