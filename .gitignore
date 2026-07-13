@@ -1,4 +1,6 @@
 .env
 .tool-versions
 /node_modules
-/uploads
+/uploads/content
+/uploads/perfil
+!/uploads/locations/
