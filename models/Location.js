@@ -9,8 +9,6 @@ const LocationSchema = new mongoose.Schema(
             coordinates: { type: [Number], required: true }
         },
         imageUrl: { type: String, default: '', trim: true },
-        operatingHours: { type: String, default: '', trim: true },
-        isExtern: { type: Boolean, default: false }
     },
     { timestamps: true }
 );

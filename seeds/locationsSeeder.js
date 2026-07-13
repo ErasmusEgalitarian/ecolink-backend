@@ -10,8 +10,6 @@ const LOCATIONS = [
             coordinates: [-47.86620142540902, -15.768323556727253]
         },
         imageFilename: 'fs.jpg',
-        operatingHours: '08:00-18:00',
-        isExtern: false,
         ecopoints: [
             {
                 label: 'Ecoponto FS',
@@ -29,8 +27,6 @@ const LOCATIONS = [
             coordinates: [-47.87115216106428, -15.770781435533308]
         },
         imageFilename: 'fiocruz.jpg',
-        operatingHours: '08:00-18:00',
-        isExtern: false,
         ecopoints: [
             {
                 label: 'Ecoponto Fiocruz',
@@ -48,8 +44,6 @@ const LOCATIONS = [
             coordinates: [-47.86871851598256, -15.763867068468066]
         },
         imageFilename: 'icc.png',
-        operatingHours: '08:00-18:00',
-        isExtern: false,
         ecopoints: [
             {
                 label: 'Ecoponto ICC Centro',
@@ -67,8 +61,6 @@ const LOCATIONS = [
             coordinates: [-47.87058317073011, -15.764231143679877]
         },
         imageFilename: 'ru.jpg',
-        operatingHours: '11:00-14:00',
-        isExtern: false,
         ecopoints: [
             {
                 label: 'Ecoponto RU',
@@ -86,8 +78,6 @@ const LOCATIONS = [
             coordinates: [-47.87228656550575, -15.763078747581929]
         },
         imageFilename: 'ft.jpg',
-        operatingHours: '08:00-18:00',
-        isExtern: false,
         ecopoints: [
             {
                 label: 'Ecoponto FT',
@@ -105,8 +95,6 @@ const LOCATIONS = [
             coordinates: [-47.87196006606473, -15.759457677369616]
         },
         imageFilename: 'fd.jpg',
-        operatingHours: '08:00-18:00',
-        isExtern: false,
         ecopoints: [
             {
                 label: 'Ecoponto FD',

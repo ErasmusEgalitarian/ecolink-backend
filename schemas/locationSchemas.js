@@ -33,15 +33,7 @@ const createLocationSchema = z.object({
 
     coordinates: coordinatesSchema,
 
-    imageUrl: z.string().trim().max(500).optional().default(''),
-
-    operatingHours: z.string()
-        .max(120, 'Operating hours must be at most 120 characters long')
-        .trim()
-        .optional()
-        .default(''),
-
-    isExtern: z.boolean().optional().default(false)
+    imageUrl: z.string().trim().max(500).optional().default('')
 });
 
 const updateLocationSchema = z.object({
@@ -59,14 +51,7 @@ const updateLocationSchema = z.object({
 
     coordinates: coordinatesSchema.optional(),
 
-    imageUrl: z.string().trim().max(500).optional(),
-
-    operatingHours: z.string()
-        .max(120, 'Operating hours must be at most 120 characters long')
-        .trim()
-        .optional(),
-
-    isExtern: z.boolean().optional()
+    imageUrl: z.string().trim().max(500).optional()
 })
     .refine(data => Object.keys(data).length > 0, {
         message: 'At least one field must be provided for update'

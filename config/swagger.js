@@ -265,8 +265,6 @@ const options = {
               }
             },
             imageUrl: { type: 'string', example: 'http://localhost:5000/uploads/bce.jpg' },
-            operatingHours: { type: 'string', example: 'Aberto 24h' },
-            isExtern: { type: 'boolean', example: false },
             acceptedMaterials: {
               type: 'array',
               items: { type: 'string', enum: ['plastic', 'metal', 'glass', 'paper'] },

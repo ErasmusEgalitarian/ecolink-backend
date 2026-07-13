@@ -18,8 +18,7 @@ describe('Location Create Schema', () => {
             address: 'Campus Universitário Darcy Ribeiro',
             coordinates: {
                 coordinates: [-416.6333, -23.5505]
-            },
-            operatingHours: 'Aberto 24h'
+            }
         };
 
         const result = createLocationSchema.safeParse(invalidPayload);
@@ -33,8 +32,7 @@ describe('Location Create Schema', () => {
             address: 'Campus Universitário Darcy Ribeiro',
             coordinates: {
                 coordinates: [-47.8702, -15.7634]
-            },
-            operatingHours: 'Aberto 24h'
+            }
         };
 
         const result = createLocationSchema.safeParse(validPayload);
@@ -50,8 +48,7 @@ describe('Location Model', () => {
             coordinates: {
                 type: 'Point',
                 coordinates: [-47.8702, -15.7634]
-            },
-            operatingHours: 'Aberto 24h'
+            }
         });
 
         const error = validLocation.validateSync();

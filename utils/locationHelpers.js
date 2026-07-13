@@ -225,7 +225,7 @@ const ECOPOINT_WITH_LOCATION_POPULATE = {
     select: 'label status acceptedMaterials qrCode locationId',
     populate: {
         path: 'locationId',
-        select: 'name address coordinates imageUrl operatingHours isExtern'
+        select: 'name address coordinates imageUrl'
     }
 };
 
