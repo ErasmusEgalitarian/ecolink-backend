@@ -22,12 +22,23 @@ const UserSchema = new mongoose.Schema({
     cpf: {
         type: String,
         required: true,
+        // ===== PRODUCTION: CPF checksum validation =====
+        // validate: {
+        //     validator: function (v) {
+        //         return isValidCPF(v);
+        //     },
+        //     message: 'Invalid CPF format',
+        // },
+        // ===== END PRODUCTION =====
+
+        // ===== DEMO PRESENTATION START — delete this block and uncomment PRODUCTION above =====
         validate: {
             validator: function (v) {
-                return isValidCPF(v);
+                return /^\d{11}$/.test(String(v || '').trim());
             },
-            message: 'Invalid CPF format',
+            message: 'CPF must have exactly 11 digits',
         },
+        // ===== DEMO PRESENTATION END =====
     },
     roleId: {
         type: mongoose.Schema.Types.ObjectId,

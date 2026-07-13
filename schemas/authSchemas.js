@@ -8,13 +8,24 @@ const unbAlunoEmailRegex = /^[a-z0-9._%+-]+@aluno\.unb\.br$/;
 const unbAlunoEmailMessage = 'Email must be from @aluno.unb.br domain';
 const verificationCodeRegex = /^\d{6}$/;
 
+// ===== PRODUCTION: institutional email (@aluno.unb.br) =====
+// const unbAlunoEmailSchema = () => z.string({
+//     required_error: 'Email is required'
+// })
+//     .trim()
+//     .toLowerCase()
+//     .email('Invalid email format')
+//     .regex(unbAlunoEmailRegex, unbAlunoEmailMessage);
+// ===== END PRODUCTION =====
+
+// ===== DEMO PRESENTATION START — delete this block and uncomment PRODUCTION above =====
 const unbAlunoEmailSchema = () => z.string({
     required_error: 'Email is required'
 })
     .trim()
     .toLowerCase()
-    .email('Invalid email format')
-    .regex(unbAlunoEmailRegex, unbAlunoEmailMessage);
+    .email('Invalid email format');
+// ===== DEMO PRESENTATION END =====
 
 /**
  * Add business rule check for password if password change is required
@@ -59,13 +70,23 @@ const registerSchema = z.object({
         required_error: 'Phone is required'
     })
         .regex(phoneRegex, 'Phone must have 10 or 11 digits'),
-    
+
+    // ===== PRODUCTION: CPF with checksum validation =====
+    // cpf: z.string({
+    //     required_error: 'CPF is required'
+    // })
+    //     .trim()
+    //     .regex(cpfRegex, 'CPF must have exactly 11 digits')
+    //     .refine(isValidCPF, 'Invalid CPF'),
+    // ===== END PRODUCTION =====
+
+    // ===== DEMO PRESENTATION START — delete this block and uncomment PRODUCTION above =====
     cpf: z.string({
         required_error: 'CPF is required'
     })
         .trim()
-        .regex(cpfRegex, 'CPF must have exactly 11 digits')
-        .refine(isValidCPF, 'Invalid CPF')
+        .regex(cpfRegex, 'CPF must have exactly 11 digits'),
+    // ===== DEMO PRESENTATION END =====
 });
 
 const forgotPasswordSchema = z.object({
