@@ -7,7 +7,6 @@ RUN npm ci --omit=dev
 
 COPY . .
 
-COPY uploads/locations ./seed/locations
 RUN mkdir -p uploads/content uploads/perfil uploads/locations
 
 ENV NODE_ENV=production
