@@ -4,7 +4,6 @@ const Role = require('../models/Role');
 const mongoose = require('mongoose');
 const request = require('supertest');
 const app = require('../server');
-const bcrypt = require('bcrypt');
 
 describe('Media endpoints', () => {
   let authToken;

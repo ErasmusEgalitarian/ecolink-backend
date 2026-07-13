@@ -91,25 +91,38 @@ app.use(notFoundHandler);
 // Global Error Handler - Captura TODOS os erros
 app.use(errorHandler);
 
-// Connect to MongoDB
-connectDB();
-
-if (process.env.NODE_ENV === "development") {
-  require("./seeds/rolesSeeder");
-  require("./seeds/semestersSeeder");
-  require("./seeds/locationsSeeder");
-  require("./seeds/contentSeeder");
-}
-
 module.exports = app;
 
-if (require.main === module) {
-  // Start the server
-  const PORT = process.env.PORT || 5000;
-  server = app.listen(PORT, () =>
-    console.log(`Server running on port ${PORT}`)
-  );
+// Connect to MongoDB and run essential seeds
+const bootstrap = async () => {
+  await connectDB();
+  await require('./seeds/rolesSeeder')();
 
-  process.on("SIGTERM", () => server.close());
-  process.on("SIGINT", () => server.close());
+  if (process.env.NODE_ENV === 'development') {
+    require('./seeds/semestersSeeder');
+    require('./seeds/locationsSeeder');
+    require('./seeds/contentSeeder');
+  }
+};
+
+if (require.main === module) {
+  bootstrap()
+    .then(() => {
+      const PORT = process.env.PORT || 5000;
+      server = app.listen(PORT, () =>
+        console.log(`Server running on port ${PORT}`)
+      );
+
+      process.on('SIGTERM', () => server.close());
+      process.on('SIGINT', () => server.close());
+    })
+    .catch((err) => {
+      console.error('Startup failed:', err);
+      process.exit(1);
+    });
+} else {
+  bootstrap().catch((err) => {
+    console.error('Startup failed:', err);
+    process.exit(1);
+  });
 }
